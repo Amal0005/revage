@@ -1,0 +1,239 @@
+<%- include("../../views/partials/user/header") %>
+
+<style>
+.order-details-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.order-status {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.order-items {
+    margin: 20px 0;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 20px;
+}
+
+.item-details {
+    flex-grow: 1;
+}
+
+.shipping-details, .payment-details {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.section-title {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 15px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #333;
+    text-decoration: none;
+    margin-bottom: 20px;
+}
+
+.back-button:hover {
+    background: #eee;
+}
+</style>
+
+<div class="order-details-container">
+    <a href="/profile#orders" class="back-button" onclick="navigateBack(event)">
+        <i class="fas fa-arrow-left"></i>
+        Back to Orders
+    </a>
+
+    <div class="order-header">
+        <div>
+            <h2>Order #<%= order._id %></h2>
+            <p class="text-muted">Placed on <%= new Date(order.orderDate).toLocaleDateString() %></p>
+        </div>
+        <span class="order-status badge bg-<%= 
+            order.status === 'Delivered' ? 'success' : 
+            order.status === 'Cancelled' ? 'danger' : 
+            order.status === 'Processing' ? 'warning' : 'info' 
+        %>">
+            <%= order.status %>
+        </span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="section-title">Order Items</h3>
+                    <div class="order-items">
+                        <% order.items.forEach(item => { %>
+                            <div class="order-item">
+                                <img src="/uploads/product-images/<%= item.product.productImage[0] %>" 
+                                     alt="<%= item.product.productName %>" 
+                                     class="item-image">
+                                <div class="item-details">
+                                    <h5><%= item.product.productName %></h5>
+                                    <p class="text-muted">Quantity: <%= item.quantity %></p>
+                                    <p class="item-price">₹<%= (item.product.salePrice * item.quantity).toLocaleString('en-IN') %></p>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="shipping-details">
+                <h3 class="section-title">Shipping Address</h3>
+                <p><strong><%= order.shippingAddress.fullName %></strong></p>
+                <p><%= order.shippingAddress.address %></p>
+                <p><%= order.shippingAddress.city %> - <%= order.shippingAddress.pincode %></p>
+                <p>Phone: <%= order.shippingAddress.phone %></p>
+            </div>
+
+            <div class="payment-details">
+                <h3 class="section-title">Order Summary</h3>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Items Total:</span>
+                    <span>₹<%= (order.totalAmount - 40).toLocaleString('en-IN') %></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Shipping:</span>
+                    <span>₹40</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>Total Amount:</strong>
+                    <strong>₹<%= order.totalAmount.toLocaleString('en-IN') %></strong>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <% if (order.status === 'Pending' || order.status === 'Processing') { %>
+                    <button class="btn btn-danger w-100" onclick="cancelOrder('<%= order._id %>')">Cancel Order</button>
+                <% } else if (order.status === 'Delivered') { %>
+                    <button class="btn btn-warning w-100" onclick="returnOrder('<%= order._id %>')">Return Order</button>
+                <% } %>
+                <button class="btn btn-dark w-100" onclick="downloadInvoice('<%= order._id %>')">Download Invoice</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function navigateBack(event) {
+    event.preventDefault();
+    window.location.href = '/profile#orders';
+    // Force a page reload to ensure the orders tab is shown
+    window.location.reload();
+}
+
+async function cancelOrder(orderId) {
+    const result = await Swal.fire({
+        title: 'Cancel Order?',
+        text: "Are you sure you want to cancel this order?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, cancel it!'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/order/${orderId}/cancel`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                Swal.fire('Cancelled!', 'Your order has been cancelled.', 'success')
+                    .then(() => window.location.reload());
+            } else {
+                Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
+            }
+        } catch (error) {
+            Swal.fire('Error', 'Something went wrong', 'error');
+        }
+    }
+}
+
+async function returnOrder(orderId) {
+    const result = await Swal.fire({
+        title: 'Return Order?',
+        text: "Are you sure you want to return this order?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, return it!'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/order/${orderId}/return`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                Swal.fire('Return Requested!', 'Your return request has been submitted.', 'success')
+                    .then(() => window.location.reload());
+            } else {
+                Swal.fire('Error', data.message || 'Failed to request return', 'error');
+            }
+        } catch (error) {
+            Swal.fire('Error', 'Something went wrong', 'error');
+        }
+    }
+}
+
+function downloadInvoice(orderId) {
+    window.location.href = `/order/${orderId}/invoice`;
+}
+</script>
+
+<%- include("../../views/partials/user/footer") %>

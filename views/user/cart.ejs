@@ -1,0 +1,317 @@
+<%- include("../../views/partials/user/header") %>
+
+<style>
+    .cart-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .cart-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .cart-items {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .cart-item {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .cart-item:last-child {
+        border-bottom: none;
+    }
+
+    .item-image {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 20px;
+    }
+
+    .item-details {
+        flex: 1;
+    }
+
+    .item-name {
+        font-size: 18px;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .item-price {
+        font-size: 16px;
+        color: #1e918b;
+        margin-bottom: 8px;
+    }
+
+    .item-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .quantity-btn {
+        background: #f0f0f0;
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+    }
+
+    .quantity-btn:hover {
+        background: #e0e0e0;
+    }
+
+    .quantity {
+        font-size: 16px;
+        min-width: 40px;
+        text-align: center;
+    }
+
+    .remove-btn {
+        background: none;
+        border: none;
+        color: #ff4444;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .remove-btn:hover {
+        text-decoration: underline;
+    }
+
+    .cart-summary {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .summary-row:last-child {
+        margin-bottom: 0;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        font-weight: 600;
+    }
+
+    .checkout-btn {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background: #1e918b;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background-color 0.2s;
+    }
+
+    .checkout-btn:hover {
+        background: #167c76;
+    }
+
+    .empty-cart {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .empty-cart-message {
+        font-size: 18px;
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .continue-shopping {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #1e918b;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+
+    .continue-shopping:hover {
+        background: #167c76;
+    }
+</style>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1 class="cart-title">Shopping Cart</h1>
+    </div>
+
+    <% if (cart && cart.items && cart.items.length > 0) { %>
+        <div class="cart-items">
+            <% cart.items.forEach(item => { %>
+                <div class="cart-item">
+                    <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt="<%= item.product.productName %>" class="item-image">
+                    <div class="item-details">
+                        <h3 class="item-name"><%= item.product.productName %></h3>
+                        <p class="item-price">₹<%= item.product.salePrice.toLocaleString('en-IN') %></p>
+                        <div class="item-actions">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="updateQuantity('<%= item.product._id %>', 'decrease')">-</button>
+                                <span class="quantity"><%= item.quantity %></span>
+                                <button class="quantity-btn" onclick="updateQuantity('<%= item.product._id %>', 'increase')">+</button>
+                            </div>
+                            <button class="remove-btn" onclick="removeFromCart('<%= item.product._id %>')">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+
+        <div class="cart-summary">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span>₹<%= cart.subtotal.toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping</span>
+                <span>₹<%= cart.shipping.toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row">
+                <span>Total</span>
+                <span>₹<%= cart.total.toLocaleString('en-IN') %></span>
+            </div>
+            <button class="checkout-btn" onclick="proceedToCheckout()">Proceed to Checkout</button>
+        </div>
+    <% } else { %>
+        <div class="empty-cart">
+            <p class="empty-cart-message">Your cart is empty</p>
+            <a href="/shop" class="continue-shopping">Continue Shopping</a>
+        </div>
+    <% } %>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    async function updateQuantity(productId, action) {
+        try {
+            const response = await fetch('/cart/update-quantity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    productId,
+                    action
+                })
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.message || 'Failed to update quantity');
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            alert('Failed to update quantity');
+        }
+    }
+
+    async function removeFromCart(productId) {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You want to remove this item from your cart?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/cart/remove-item', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ productId })
+            });
+
+            if (response.ok) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Removed!',
+                    text: 'Item has been removed from your cart.',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: data.message || 'Failed to remove item'
+                });
+            }
+        } catch (error) {
+            console.error('Error removing item:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Failed to remove item'
+            });
+        }
+    }
+
+    function proceedToCheckout() {
+        window.location.href = '/checkout';
+    }
+</script>
+
+<%- include("../../views/partials/user/footer") %>

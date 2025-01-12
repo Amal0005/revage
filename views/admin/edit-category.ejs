@@ -1,0 +1,241 @@
+<%- include("../../views/partials/admin/header") %>
+<style>
+    /* General Styling */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #fff; /* White background */
+        color: #000; /* Black text */
+    }
+
+    /* Form Container */
+    form {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        display: table;
+        width: 100%;
+        margin-left: 271px;
+    }
+
+    /* Table-like Layout */
+    .form-row {
+        display: table-row;
+    }
+
+    .form-cell {
+        display: table-cell;
+        padding: 10px;
+        vertical-align: middle;
+    }
+
+    .form-label {
+        font-weight: bold;
+        color: #000;
+        padding-right: 10px;
+        white-space: nowrap;
+    }
+
+    .form-control {
+        background-color: #fff;
+        color: #000;
+        border: 1px solid #fff;
+        border-radius: 5px;
+        padding: 8px;
+        width: 100%;
+    }
+
+    .form-control:focus {
+        background-color: #fff;
+        border-color: #fff;
+        color: #000;
+        outline: none;
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    }
+
+    textarea.form-control {
+        height: 80px;
+    }
+
+    .btn {
+        background-color: #fff;
+        color: #000;
+        border: 1px solid #fff;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .btn:hover {
+        background-color: #fff;
+        border-color: #fff;
+        color: #000;
+    }
+
+    .btn-info {
+        background-color: #555;
+        color: #fff;
+        border: 1px solid #777;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-weight: bold;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+    }
+
+    .btn-info:hover {
+        background-color: #777;
+        border-color: #999;
+        color: #000;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-info:active {
+        background-color: #444;
+        border-color: #666;
+        color: #fff;
+        transform: scale(0.98);
+    }
+
+    .d-grid.text-end {
+        text-align: right;
+    }
+
+    .mt-60 {
+        margin-top: 60px;
+    }
+
+    .mt-30 {
+        margin-top: 30px;
+    }
+
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+</style>
+
+<div class="col-md-6 mt-60">
+    <form id="editCategoryForm">
+        <div class="form-row">
+            <div class="form-cell">
+                <label for="product_name" class="form-label">Name</label>
+            </div>
+            <div class="form-cell">
+                <input
+                    type="text"
+                    name="categoryName"
+                    id="categoryName"
+                    class="form-control border"
+                    value="<%=category.name%>"
+                />
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-cell">
+                <label class="form-label">Description</label>
+            </div>
+            <div class="form-cell">
+                <textarea
+                    name="description"
+                    id="description"
+                    class="form-control border"
+                ><%=category.description%></textarea>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-cell"></div>
+            <div class="form-cell">
+                <div class="d-grid text-end mt-30 col-md-5">
+                    <button class="btn btn-info" type="submit">Update</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<%- include("../../views/partials/admin/footer") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+   
+   async function submitForm(event) {
+    event.preventDefault(); // Prevent the form's default submission behavior
+
+    // Get form values
+    const categoryName = document.getElementById('categoryName').value.trim();
+    const description = document.getElementById('description').value.trim();
+
+    if (!categoryName || !description) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Missing Fields',
+            text: 'Both fields are required.',
+        });
+        return;
+    }
+
+    // Extract the 'id' from the URL query string
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+
+    if (!id) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Category ID Not Found',
+            text: 'Category ID not found in the URL.',
+        });
+        return;
+    }
+
+    // Prepare form data
+    const formData = { categoryName, description };
+
+    try {
+        // Make a POST request to the backend
+        const response = await fetch(`/admin/editCategory?id=${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Category updated successfully!',
+            }).then(() => {
+                // Optional: Redirect or reload after success
+                window.location.href = '/admin/category';
+            });
+            console.log(data);
+        } else {
+            const errorData = await response.json();
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to Update',
+                text: errorData.message || 'Unknown error occurred.',
+            });
+            console.error('Error:', errorData);
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while updating the category.',
+        });
+    }
+}
+
+// Attach the submit handler to the form
+document.getElementById('editCategoryForm').addEventListener('submit', submitForm);
+
+</script>

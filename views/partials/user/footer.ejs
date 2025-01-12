@@ -1,0 +1,209 @@
+<style>
+    /* Footer Styling */
+  /* Footer Styling */
+.site-footer {
+    background-color: #fff;
+    color: #000;
+    padding: 10px 0; /* Reduced padding */
+    font-size: 0.8rem; /* Smaller font size */
+    border-top: 1px solid #eee;
+}
+
+.site-footer h3.footer-heading {
+    font-size: 0.8rem; /* Smaller heading size */
+    color: #000;
+    margin-bottom: 8px; /* Reduced margin */
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.site-footer ul {
+    padding-left: 0;
+    list-style: none;
+    margin-bottom: 0;
+}
+
+.site-footer ul li {
+    margin-bottom: 3px; /* Reduced spacing */
+}
+
+.site-footer ul li a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    font-size: 0.75rem; /* Smaller font size */
+}
+
+.site-footer ul li a:hover {
+    color: #000;
+}
+
+/* Contact Info */
+.contact-info li {
+    margin-bottom: 3px; /* Reduced spacing */
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem; /* Smaller font size */
+}
+
+.contact-info li i {
+    color: #000;
+    margin-right: 6px; /* Reduced margin */
+    font-size: 0.8rem; /* Smaller icon size */
+}
+
+.contact-info li a {
+    color: #333;
+}
+
+/* Social Icons */
+.social-icons {
+    margin-top: 8px; /* Reduced spacing */
+}
+
+.social-icon {
+    display: inline-block;
+    margin-right: 6px; /* Reduced spacing */
+    color: #333;
+    font-size: 0.9rem; /* Smaller icon size */
+    transition: color 0.3s ease;
+}
+
+.social-icon:hover {
+    color: #000;
+}
+
+/* Subscribe Form */
+.subscribe-form input.form-control {
+    width: 65%; /* Reduced width */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px; /* Reduced padding */
+    background-color: #fff;
+    color: #000;
+    font-size: 0.75rem; /* Smaller font size */
+    height: 28px; /* Reduced height */
+}
+
+.subscribe-form button {
+    height: 28px; /* Reduced height */
+    padding: 4px 10px; /* Reduced padding */
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.75rem; /* Smaller font size */
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.subscribe-form button:hover {
+    opacity: 0.8;
+}
+
+/* Footer Bottom */
+.site-footer .text-center {
+    margin-top: 8px; /* Reduced spacing */
+    font-size: 0.7rem; /* Smaller font size */
+    color: #333;
+    padding-top: 8px; /* Reduced spacing */
+    border-top: 1px solid #eee;
+}
+
+.site-footer .text-center a {
+    color: #000;
+    text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .site-footer {
+        text-align: center;
+        padding: 8px 0; /* Reduced padding */
+    }
+
+    .site-footer .row {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .subscribe-form input.form-control,
+    .subscribe-form button {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .footer-heading {
+        margin-top: 8px; /* Reduced margin */
+    }
+}
+
+  
+</style>
+  
+<footer class="site-footer">
+    <div class="container">
+        <div class="row">
+            <!-- Quick Links -->
+            <div class="col-md-4">
+                <h3 class="footer-heading mb-4">Quick Links</h3>
+                <ul class="list-unstyled">
+                    <li><a href="#">Sell Online</a></li>
+                    <li><a href="#">Features</a></li>
+                    <li><a href="#">Shopping Cart</a></li>
+                    <li><a href="#">Store Builder</a></li>
+                </ul>
+            </div>
+  
+            <!-- Contact Info -->
+            <div class="col-md-4">
+                <h3 class="footer-heading mb-4">Contact Info</h3>
+                <ul class="list-unstyled contact-info">
+                    <li><i class="fa fa-map-marker"></i> 203 Fake St. Mountain View, San Francisco, CA</li>
+                    <li><i class="fa fa-phone"></i> <a href="tel://23923929210">+91 1234567899</a></li>
+                    <li><i class="fa fa-envelope"></i> admin@revage.com</li>
+                </ul>
+                <div class="social-icons">
+                    <a href="#" class="social-icon"><i class="fa fa-facebook"></i></a>
+                    <a href="#" class="social-icon"><i class="fa fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fa fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fa fa-linkedin"></i></a>
+                </div>
+            </div>
+  
+            <!-- Subscribe -->
+            <div class="col-md-4">
+                <h3 class="footer-heading mb-4">Subscribe</h3>
+                <form action="#" method="post" class="subscribe-form">
+                    <input type="text" class="form-control" placeholder="Enter your email">
+                    <button type="submit" class="btn btn-primary">Subscribe</button>
+                </form>
+            </div>
+        </div>
+  
+        <div class="row text-center pt-3 mt-3 border-top">
+            <div class="col-md-12">
+                <p class="small">
+                    Copyright &copy; <script>document.write(new Date().getFullYear());</script> All rights reserved.<a href="http://localhost:1111/" class="text-primary">Revage</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+</body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+</body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+</body>
+</html>

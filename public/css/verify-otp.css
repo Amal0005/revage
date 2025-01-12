@@ -1,0 +1,121 @@
+/* verify-otp.css */
+body {
+    font-family: 'Nunito Sans', sans-serif;
+    background-color: #ffffff; /* White background */
+    color: #000000; /* Black text */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #f0f0f0; /* Light gray for container background */
+    border-radius: 10px;
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle black shadow */
+    text-align: center;
+}
+
+h3 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    color: #000000; /* Black text for header */
+    letter-spacing: 1px;
+}
+
+form {
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+label {
+    font-size: 14px;
+    color: #333333; /* Dark gray for labels */
+    margin-bottom: 5px;
+    display: block;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #000000; /* Black border */
+    border-radius: 5px;
+    background-color: #ffffff; /* White input background */
+    color: #000000; /* Black input text */
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input[type="text"]::placeholder {
+    color: #666666; /* Medium gray for placeholder text */
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button.btn-primary {
+    background-color: #000000; /* Black button background */
+    color: #ffffff; /* White text */
+    font-weight: bold;
+}
+
+button.btn-primary:hover {
+    background-color: #ffffff; /* White button background */
+    color: #000000; /* Black text */
+    border: 1px solid #000000; /* Black border on hover */
+}
+
+button.btn-secondary {
+    background-color: #cccccc; /* Light gray for secondary button */
+    color: #000000; /* Black text */
+}
+
+button.btn-secondary:hover {
+    background-color: #000000; /* Black background on hover */
+    color: #ffffff; /* White text */
+}
+
+.otp-timer {
+    margin: 15px 0;
+    font-size: 14px;
+    color: #000000; /* Black text */
+}
+
+#timerValue {
+    font-weight: bold;
+}
+
+#timerValue.expired {
+    color: #ff0000; /* Red for expired timer */
+}
+
+.footer-link {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.footer-link a {
+    color: #000000; /* Black links */
+    text-decoration: underline;
+}
+
+.footer-link a:hover {
+    color: #666666; /* Gray on hover */
+}

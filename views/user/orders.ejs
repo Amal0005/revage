@@ -1,0 +1,323 @@
+<%- include("../../views/partials/user/header") %>
+
+<style>
+    .orders-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 20px;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 30px;
+        color: #000;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        border-bottom: 3px solid #000;
+        padding-bottom: 10px;
+    }
+
+    .order-card {
+        background: #fff;
+        border: 1px solid #000;
+        margin-bottom: 25px;
+        transition: transform 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .order-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .order-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: #000;
+    }
+
+    .order-header {
+        padding: 20px;
+        background: #f8f8f8;
+        border-bottom: 1px solid #000;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .order-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .order-info label {
+        font-size: 0.8rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+
+    .order-info span {
+        font-size: 1rem;
+        color: #000;
+        font-weight: 500;
+    }
+
+    .order-items {
+        padding: 20px;
+    }
+
+    .item-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 4px;
+    }
+
+    .item-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        margin-right: 15px;
+        border: 1px solid #000;
+    }
+
+    .item-details h4 {
+        margin: 0 0 5px 0;
+        font-size: 1rem;
+        color: #000;
+    }
+
+    .item-details p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .order-footer {
+        padding: 15px 20px;
+        background: #000;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-total {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .order-actions button {
+        background: transparent;
+        border: 2px solid #fff;
+        color: #fff;
+        padding: 8px 15px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .order-actions button:hover {
+        background: #fff;
+        color: #000;
+    }
+
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .status-pending {
+        background: #fff;
+        color: #000;
+        border: 1px solid #000;
+    }
+
+    .status-processing {
+        background: #000;
+        color: #fff;
+    }
+
+    .status-shipped {
+        background: #666;
+        color: #fff;
+    }
+
+    .status-delivered {
+        background: #222;
+        color: #fff;
+    }
+
+    .status-cancelled {
+        background: #fff;
+        color: #ff0000;
+        border: 1px solid #ff0000;
+    }
+
+    .empty-orders {
+        text-align: center;
+        padding: 50px 20px;
+    }
+
+    .empty-orders h3 {
+        font-size: 1.5rem;
+        color: #000;
+        margin-bottom: 20px;
+    }
+
+    .shop-now-btn {
+        display: inline-block;
+        padding: 12px 25px;
+        background: #000;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .shop-now-btn:hover {
+        background: #333;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .order-header {
+            grid-template-columns: 1fr;
+        }
+
+        .item-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .page-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="orders-container">
+    <h1 class="page-title">My Orders</h1>
+
+    <% if (orders && orders.length > 0) { %>
+        <% orders.forEach(order => { %>
+            <div class="order-card">
+                <div class="order-header">
+                    <div class="order-info">
+                        <label>Order ID</label>
+                        <span>#<%= order._id.toString().slice(-8).toUpperCase() %></span>
+                    </div>
+                    <div class="order-info">
+                        <label>Order Date</label>
+                        <span><%= new Date(order.orderDate).toLocaleDateString('en-IN', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        }) %></span>
+                    </div>
+                    <div class="order-info">
+                        <label>Status</label>
+                        <span class="status-badge status-<%= order.status.toLowerCase() %>">
+                            <%= order.status %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="order-items">
+                    <div class="item-grid">
+                        <% order.items.forEach(item => { %>
+                            <div class="order-item">
+                                <img src="/uploads/product-images/<%= item.product.productImage[0] %>" 
+                                     alt="<%= item.product.productName %>"
+                                     class="item-image">
+                                <div class="item-details">
+                                    <h4><%= item.product.productName %></h4>
+                                    <p>Quantity: <%= item.quantity %></p>
+                                    <p>₹<%= item.price.toLocaleString('en-IN') %></p>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <div class="order-footer">
+                    <div class="order-total">
+                        Total: ₹<%= order.totalAmount.toLocaleString('en-IN') %>
+                    </div>
+                    <div class="order-actions">
+                        <% if (order.status !== 'Delivered' && order.status !== 'Cancelled') { %>
+                            <button onclick="cancelOrder('<%= order._id %>')">Cancel Order</button>
+                        <% } %>
+                        <button onclick="window.location.href='/orders/<%= order._id %>'">View Details</button>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    <% } else { %>
+        <div class="empty-orders">
+            <h3>No orders yet</h3>
+            <p>Looks like you haven't made your first order yet.</p>
+            <a href="/shop" class="shop-now-btn">Start Shopping</a>
+        </div>
+    <% } %>
+</div>
+
+<script>
+async function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/orders/${orderId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: data.message,
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: error.message || 'Failed to cancel order'
+        });
+    }
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<%- include("../../views/partials/user/footer") %>

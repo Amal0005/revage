@@ -1,0 +1,873 @@
+<%-include("../../views/partials/user/header.ejs")%>
+<style>
+  
+   body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    .site-section {
+      background-color: #202020; /* Dark background for contrast */
+      padding: 60px 20px;
+      border-radius: 8px;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .lead {
+      font-size: 1.4rem;
+      color: #fff;
+      font-weight: 600;
+      line-height: 1.8;
+      letter-spacing: 1px;
+      opacity: 0;
+      animation: fadeInSlide 2s forwards;
+    }
+
+    /* Card Styles */
+    .collection-item {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .collection-item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .collection-title {
+      font-size: 1.6rem;
+      color: #202020;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin-top: 15px;
+    }
+
+    .collection-item img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    .collection-item img:hover {
+      transform: scale(1.05);
+    }
+
+    .text-muted {
+      font-size: 1rem;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    /* Section Footer */
+    .site-footer {
+      margin-top: 40px;
+      font-size: 2rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-align: center;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+ 
+
+    /* Animations */
+    @keyframes fadeInSlide {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  /* Hover effect for the collection title */
+.collection-title:hover {
+    color: #e74c3c; /* Vibrant red on hover */
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Stronger shadow effect */
+    transform: translateY(-8px); /* Moves the text higher for a more dynamic effect */
+    transition: all 0.3s ease;
+}
+
+/* Hover effect for the description */
+.text-muted:hover {
+    color: #3498db; /* Vibrant blue on hover */
+    transform: translateX(8px); /* Slide effect to the right */
+    font-weight: 500; /* Makes the text bolder on hover */
+    letter-spacing: 1px; /* Slight increase in letter spacing */
+    transition: all 0.3s ease;
+}
+
+  /* Fade-In and Slide-In Animation */
+@keyframes fadeInSlide {
+    0% {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Hover Bounce Effect */
+.lead:hover {
+    color: #ffcc00;
+    transform: translateY(-5px) scale(1.05);
+    text-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes slideIn {
+    0% { transform: translateY(-50px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes bounceIn {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); opacity: 1; }
+    40% { transform: translateY(-15px); }
+    60% { transform: translateY(-10px); }
+}
+
+/* Hover Effect for the Button */
+.cta-button:hover {
+    background-color: #000;
+    color: #ffcc00;
+    transform: scale(1.1);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* New Product Card Styles */
+.product-details {
+  background: #ffffff; /* White background for the card */
+  /* border: 1px solid #e0e0e0; Light gray border */
+  border-radius: 8px; /* Rounded corners */
+  /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); Subtle shadow for a 3D effect */
+  padding: 15px; /* Space inside the container */
+  max-width: 300px; /* Maximum width for compactness */
+  text-align: center; /* Center alignment for content */
+  margin: auto; /* Center the container */
+  font-family: 'Arial', sans-serif; /* Clean and readable font */
+}
+
+.product-details .product-name {
+  font-size: 1.2rem; /* Slightly larger font for the name */
+  font-weight: 600; /* Bold text */
+  color: #000000; /* Dark text color */
+  margin-bottom: 10px; /* Spacing below the name */
+  text-transform: capitalize; /* Capitalize product name */
+}
+
+.product-details .product-category {
+  font-size: 0.9rem; /* Smaller text for the category */
+  color: #000000; /* Muted color */
+  margin-bottom: -3px; /* Space below the category */
+}
+
+.price-container {
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  align-items: center; /* Center-align content */
+  margin-bottom: -15px; /* Space below the prices */
+}
+
+.price-container .original-price {
+  text-decoration: line-through; /* Strikethrough for the original price */
+  color: #3a3a3a; /* Light gray color */
+  font-size: 0.9rem; /* Slightly smaller text */
+  margin-bottom: 5px; /* Space below the original price */
+}
+
+.price-container .sale-price {
+  font-size: 1.4rem; /* Larger font for the sale price */
+  font-weight: bold; /* Emphasize the sale price */
+  color: #e63946; /* Bright red color for sale price */
+  margin-bottom: -21;
+}
+
+.price-container .offer-badge {
+  background: #ffd700; /* Gold background */
+  color: #333333; /* Dark text */
+  font-size: 0.8rem; /* Small badge text */
+  padding: 5px 10px; /* Padding for the badge */
+  border-radius: 12px; /* Rounded badge */
+  display: inline-block; /* Ensure the badge stays inline */
+  margin-top: 5px; /* Space above the badge */
+}
+
+.btn.view-details-btn {
+  display: inline-block; /* Inline button */
+  background: black; /* Blue background */
+  color: #ffffff; /* White text */
+  padding: 8px 15px; /* Padding for the button */
+  font-size: 0.9rem; /* Compact font size */
+  border: none; /* Remove border */
+  border-radius: 20px; /* Rounded button */
+  text-transform: uppercase; /* Uppercase text */
+  text-decoration: none; /* Remove underline */
+  transition: background 0.3s ease; /* Smooth transition effect */
+}
+
+.btn.view-details-btn:hover {
+  background: #0056b3; /* Darker blue on hover */
+}
+
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .hero-section {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .hero-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .content-container {
+            position: relative;
+            /* z-index: 1; */
+            height: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-content {
+            text-align: center;
+            color: white;
+            max-width: 800px;
+        }
+
+        .sub-title {
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.8s ease-out 0.2s forwards;
+            opacity: 0;
+        }
+
+        .description {
+            font-size: 1.2rem;
+            color: #262626;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out 0.4s forwards;
+            opacity: 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            color: white;
+            background-color: transparent;
+            /* border: 1px solid black; */
+            border-radius: 30px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease-out 0.6s forwards;
+            opacity: 0;
+        }
+
+        .cta-button:hover {
+            background-color: #00000018;
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sub-title {
+                font-size: 1.4rem;
+            }
+            .main-title {
+                font-size: 2.5rem;
+            }
+            .description {
+                font-size: 1rem;
+            }
+        }
+.product-card {
+  background: #fff;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.product-image-wrapper {
+  position: relative;
+  height: 320px;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+.secondary-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.product-card:hover .secondary-image {
+  opacity: 1;
+}
+
+.stock-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 8px 15px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 600;
+  /* z-index: 2; */
+}
+
+.product-details {
+  padding: 25px;
+}
+
+.product-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.product-category {
+  font-size: 14px;
+  color: #95a5a6;
+  margin-bottom: 15px;
+}
+
+.price-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.original-price {
+  font-size: 16px;
+  color: #95a5a6;
+  text-decoration: line-through;
+}
+
+.sale-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2ecc71;
+}
+
+.offer-badge {
+  background: #fff3cd;
+  color: #856404;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.view-details-btn {
+  border: 1px solid black;
+  background: #ffffff;
+  color:black;
+    width: 36%;
+    padding: 9px;   
+    border-radius: 5px;
+    font-weight: 500;
+    font-size: 10px;
+    transition: background 0.3s ease;
+}
+
+.view-details-btn:hover {
+
+  background:black;
+  color: white;
+}
+
+@media (max-width: 1200px) {
+  .product-card {
+    max-width: 350px;
+  }
+  
+  .product-image-wrapper {
+    height: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-card {
+    max-width: 300px;
+  }
+  
+  .product-image-wrapper {
+    height: 250px;
+  }
+  
+  .product-details {
+    padding: 20px;
+  }
+  
+  .product-name {
+    font-size: 16px;
+  }
+}
+
+/* Collection Styles */
+.collection-item {
+  transition: transform 0.3s ease;
+}
+
+.collection-item:hover {
+  transform: translateY(-5px);
+}
+.rating{
+  margin-bottom: -10px;
+}
+</style>
+<style link>
+   
+</style>
+<div class="site-wrap">
+   <!-- Hero Section -->
+  <section class="hero-section">
+    <img src="images/imgtop.jpg" alt="Hero Background" class="hero-image">
+    <div class="overlay"></div>
+    <div class="content-container">
+      <div class="hero-content" style="text-align: center; padding: 50px 20px; font-family: Arial, sans-serif;">
+    <h2 class="sub-title" style="font-size: 2rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #ffcc00; opacity: 0; animation: fadeIn 2s forwards;">The World Of DIECAST</h2>
+    <h1 class="main-title" style="font-size: 3rem; font-weight: bold; margin: 20px 0; text-transform: uppercase; color: #fff; opacity: 0; animation: slideIn 1.5s forwards 0.5s;">Unmissable Arrivals</h1>
+    <p class="description" style="font-size: 1.2rem; color: #dcdcdc; margin-bottom: 30px; opacity: 0; animation: fadeIn 3s forwards 1s;">Experience the future of design with our exclusive lineup.</p>
+    <a href="#discover" class="cta-button" style="display: inline-block; padding: 15px 30px; font-size: 1rem; font-weight: bold; text-transform: uppercase; color: #000; background-color: #ffcc00; border-radius: 30px; text-decoration: none; opacity: 0; animation: bounceIn 2s forwards 1.5s;">
+        Explore Now
+    </a>
+</div>
+
+    </div>
+ </section>
+  
+
+  <!-- Discover Section -->
+  <div class="site-section">
+    <div class="container">
+      <div class="text-center mb-5">
+        <p class="lead">
+          A curated lineup of classic and modern styles, handpicked for every enthusiast.
+        </p>
+      </div>
+      <div class="row align-items-center">
+        <!-- Left Column -->
+        <div class="col-md-6">
+          <div class="collection-item text-center mb-4">
+            <img src="images/img6.jpg" alt="Collection 1" class="img-fluid">
+            <h4 class="collection-title">Miniature in Hand</h4>
+            <p class="text-muted">
+              Even the smallest things, held with care, can carry the weight of a thousand dreams.
+            </p>
+          </div>
+          <div class="collection-item text-center">
+            <img src="images/img5.jpg" alt="Collection 2" class="img-fluid">
+            <h4 class="collection-title">Elegant</h4>
+            <p class="text-muted">Evoke a sense of metaphorical potential.</p>
+          </div>
+        </div>
+        <!-- Right Column -->
+        <div class="col-md-6">
+          <div class="collection-item text-center">
+            <img src="images/img12.jpeg" alt="Collection 3" class="img-fluid">
+            <h4 class="collection-title">Model Car Chaos</h4>
+            <p class="text-muted">
+              The nostalgic and artistic vibe of the black-and-white style.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="site-footer" >
+       
+        Discover Our DIECAST Collections
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Products Section -->
+  <div class="container">
+    <div class="row align-items-stretch">
+      <% if (products && products.length > 0) { %>
+        <% products.forEach(function(product) { %>
+          <div class="col-lg-4 col-md-6"> <!-- Changed to col-lg-4 for 3 items per row -->
+            <div class="product-card">
+              <div class="product-image-wrapper">
+                <% if (product.productImage && product.productImage.length > 0) { %>
+                  <img src="<%= '/uploads/product-images/' + product.productImage[0] %>" 
+                       class="product-image" 
+                       alt="<%= product.productName %>">
+                  
+                  <% if (product.productImage.length > 1) { %>
+                    <img src="/uploads/product-images/<%= product.productImage[1] %>" 
+                         class="product-image secondary-image" 
+                         alt="<%= product.productName %> - Alternative">
+                  <% } %>
+                <% } else { %>
+                  <div class="no-image-placeholder d-flex align-items-center justify-content-center bg-light h-100">
+                    <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+                  </div>
+                <% } %>
+                
+                <% if (product.quantity <= 0) { %>
+                  <span class="stock-badge bg-danger">Out of Stock</span>
+                <% } %>
+              </div>
+
+              <div class="product-details">
+                <h3 class="product-name"><%= product.productName %></h3>
+                <p class="product-category">
+                  <%= product.category ? product.category.name : 'Uncategorized' %>
+                </p>
+                
+                <div class="price-container">
+                  <% if (product.productOffer || (product.category && product.category.categoryOffer)) { %>
+                    <span class="original-price">₹<%= product.regularPrice %></span>
+                    <span class="sale-price">₹<%= product.salePrice %></span>
+                    <span class="offer-badge">
+                      <%= (product.productOffer || 0) + (product.category ? product.category.categoryOffer || 0 : 0) %>% OFF
+                    </span>
+                  <% } else { %>
+                    <span class="sale-price">₹<%= product.regularPrice %></span>
+                    <!-- <p><%=product.description%></p> -->
+                     <p class="rating">⭐⭐⭐⭐</p>
+                  <% } %>
+                </div>
+                <a href="/product/<%= product._id %>" class="btn view-details-btn">View</a>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div class="col-12">
+          <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            No products available at the moment.
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Categories Section -->
+  <% if (categories && categories.length > 0) { %>
+    <div class="site-section">
+      <div class="container">
+        <div class="title-section mb-5">
+          <h2 class="text-uppercase"><span class="d-block">Shop By</span> Categories</h2>
+        </div>
+        <div class="row">
+          <% categories.forEach(function(cat) { %>
+            <div class="col-lg-3 col-md-6 mb-4">
+              <a href="/shop?category=<%= cat._id %>" class="category-card text-decoration-none">
+                <div class="card h-100">
+                  <div class="card-body text-center">
+                    <h5 class="card-title text-dark mb-0"><%= cat.name %></h5>
+                  </div>
+                </div>
+              </a>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<script>
+  document.querySelector('.cta-button').addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetSection = document.querySelector('#discover');
+      if (targetSection) {
+          targetSection.scrollIntoView({ behavior: 'smooth' });
+      }
+  });
+</script>
+<%-include("../../views/partials/user/footer.ejs")%>
+  
+      
+      <!-- <div class="site-section">
+        <div class="container">
+          <div class="row">
+            <div class="title-section mb-5 col-12">
+              <h2 class="text-uppercase">Popular Products</h2>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-4 col-md-6 item-entry mb-4">
+              <a href="#" class="product-item md-height bg-gray d-block">
+                <img src="images/prod_2.png" alt="Image" class="img-fluid">
+              </a>
+              <h2 class="item-title"><a href="#">Gray Shoe</a></h2>
+              <strong class="item-price">$20.00</strong>
+            </div>
+            <div class="col-lg-4 col-md-6 item-entry mb-4">
+              <a href="#" class="product-item md-height bg-gray d-block">
+                <img src="images/prod_3.png" alt="Image" class="img-fluid">
+              </a>
+              <h2 class="item-title"><a href="#">Blue Shoe High Heels</a></h2>
+              <strong class="item-price"><del>$46.00</del> $28.00</strong>
+            </div>
+  
+            <div class="col-lg-4 col-md-6 item-entry mb-4">
+              <a href="#" class="product-item md-height bg-gray d-block">
+                <img src="images/model_5.png" alt="Image" class="img-fluid">
+              </a>
+              <h2 class="item-title"><a href="#">Denim Jacket</a></h2>
+              <strong class="item-price"><del>$46.00</del> $28.00</strong>
+  
+              <div class="star-rating">
+                <span class="icon-star2 text-warning"></span>
+                <span class="icon-star2 text-warning"></span>
+                <span class="icon-star2 text-warning"></span>
+                <span class="icon-star2 text-warning"></span>
+                <span class="icon-star2 text-warning"></span>
+              </div>
+  
+            </div>
+            <div class="col-lg-4 col-md-6 item-entry mb-4">
+              <a href="#" class="product-item md-height bg-gray d-block">
+                <img src="images/prod_1.png" alt="Image" class="img-fluid">
+              </a>
+              <h2 class="item-title"><a href="#">Leather Green Bag</a></h2>
+              <strong class="item-price"><del>$46.00</del> $28.00</strong>
+              <div class="star-rating">
+                <span class="icon-star2 text-warning"></span>
+                <span class="icon-star2 text-warning"></span>
+                <span class="icon-star2 text-warning"></span>
+                <span class="icon-star2 text-warning"></span>
+                <span class="icon-star2 text-warning"></span>
+              </div>
+            </div>
+  
+            <div class="col-lg-4 col-md-6 item-entry mb-4">
+              <a href="#" class="product-item md-height bg-gray d-block">
+                <img src="images/model_1.png" alt="Image" class="img-fluid">
+              </a>
+              <h2 class="item-title"><a href="#">Smooth Cloth</a></h2>
+              <strong class="item-price"><del>$46.00</del> $28.00</strong>
+            </div>
+            <div class="col-lg-4 col-md-6 item-entry mb-4">
+              <a href="#" class="product-item md-height bg-gray d-block">
+                <img src="images/model_7.png" alt="Image" class="img-fluid">
+              </a>
+              <h2 class="item-title"><a href="#">Yellow Jacket</a></h2>
+              <strong class="item-price">$58.00</strong>
+            </div>
+  
+          </div>
+        </div>
+      </div> -->
+  
+      <!-- <div class="site-section">
+        <div class="container">
+          <div class="row">
+            <div class="title-section text-center mb-5 col-12">
+              <h2 class="text-uppercase">Most Rated</h2>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12 block-3">
+              <div class="nonloop-block-3 owl-carousel">
+                <div class="item">
+                  <div class="item-entry">
+                    <a href="#" class="product-item md-height bg-gray d-block">
+                      <img src="images/model_1.png" alt="Image" class="img-fluid">
+                    </a>
+                    <h2 class="item-title"><a href="#">Smooth Cloth</a></h2>
+                    <strong class="item-price"><del>$46.00</del> $28.00</strong>
+                    <div class="star-rating">
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="item">
+                  <div class="item-entry">
+                    <a href="#" class="product-item md-height bg-gray d-block">
+                      <img src="images/prod_3.png" alt="Image" class="img-fluid">
+                    </a>
+                    <h2 class="item-title"><a href="#">Blue Shoe High Heels</a></h2>
+                    <strong class="item-price"><del>$46.00</del> $28.00</strong>
+  
+                    <div class="star-rating">
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="item">
+                  <div class="item-entry">
+                    <a href="#" class="product-item md-height bg-gray d-block">
+                      <img src="images/model_5.png" alt="Image" class="img-fluid">
+                    </a>
+                    <h2 class="item-title"><a href="#">Denim Jacket</a></h2>
+                    <strong class="item-price"><del>$46.00</del> $28.00</strong>
+  
+                    <div class="star-rating">
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                    </div>
+  
+                  </div>
+                </div>
+                <div class="item">
+                  <div class="item-entry">
+                    <a href="#" class="product-item md-height bg-gray d-block">
+                      <img src="images/prod_1.png" alt="Image" class="img-fluid">
+                    </a>
+                    <h2 class="item-title"><a href="#">Leather Green Bag</a></h2>
+                    <strong class="item-price"><del>$46.00</del> $28.00</strong>
+                    <div class="star-rating">
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="item">
+                  <div class="item-entry">
+                    <a href="#" class="product-item md-height bg-gray d-block">
+                      <img src="images/model_7.png" alt="Image" class="img-fluid">
+                    </a>
+                    <h2 class="item-title"><a href="#">Yellow Jacket</a></h2>
+                    <strong class="item-price">$58.00</strong>
+                    <div class="star-rating">
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                      <span class="icon-star2 text-warning"></span>
+                    </div>
+                  </div>
+                </div>
+  
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+  
+      
+      <!-- <div class="site-blocks-cover inner-page py-5" data-aos="fade">
+        <div class="container">
+          <div class="row">
+            <div class="col-md-6 ml-auto order-md-2 align-self-start">
+              <div class="site-block-cover-content">
+              <h2 class="sub-title">#New Summer Collection 2019</h2>
+              <h1>New Shoes</h1>
+              <p><a href="#" class="btn btn-black rounded-0">Shop Now</a></p>
+              </div>
+            </div>
+            <div class="col-md-6 order-1 align-self-end">
+              <img src="images/model_6.png" alt="Image" class="img-fluid">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div> -->
+        
+<!-- </body>

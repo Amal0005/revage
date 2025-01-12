@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revage - Log in to Exclusive</title>
+    <style>
+        
+                 .social-btns {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+    }
+
+    /* Google button styling */
+    .google-btn {
+        width:550px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        background-color: #000000; /* Google red */
+        border: none;
+        padding: 10px 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-transform: uppercase;
+    }
+
+    /* SVG icon alignment */
+    .google-btn svg {
+        margin-right: 8px;
+    }
+
+    /* Hover effect */
+    .google-btn:hover {
+        background-color: #c23321;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+
+    /* Active state */
+    .google-btn:active {
+        background-color: #a52714;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transform: translateY(2px);
+    }
+
+    /* Focus state for accessibility */
+    .google-btn:focus {
+        outline: 2px solid #fff;
+        outline-offset: 3px;
+    }
+
+    /* Responsive scaling for smaller screens */
+    @media (max-width: 600px) {
+        .google-btn {
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+    height: 100vh;
+    background: #fff;
+}
+
+.form-section {
+    flex: 1;
+    padding: 40px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 600px;
+}
+
+.image-section {
+    flex: 1;
+    position: relative;
+    min-height: 100%;
+    overflow: hidden;
+}
+
+.image-section img {
+    width: 130%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 100px;
+    right: -10px;
+}
+
+/* Adjust the logo and nav positions */
+.logo {
+    position: fixed;
+    top: 20px;
+    left: 40px;
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 100;
+}
+
+nav {
+    position: fixed;
+    top: 20px;
+    right: 40px;
+    z-index: 100;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .image-section {
+        display: none;
+    }
+
+    .form-section {
+        width: 100%;
+        padding: 40px 20px;
+        max-width: none;
+    }
+    
+    .logo {
+        position: absolute;
+    }
+    
+    nav {
+        position: absolute;
+    }
+}
+
+        nav a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #000;
+            font-size: 14px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .form-footer a {
+            color: #000;
+            text-decoration: none;
+        }
+
+        .error-message {
+            color: #ff0000;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .image-section {
+                display: none;
+            }
+
+            .form-section {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">REVAGE</div>
+    <nav>
+        <a href="/contact">Contact</a>
+        <a href="/about">About</a>
+    </nav>
+
+    <div class="container">
+        <div class="image-section">
+            <img src="images/img13.jpeg" alt="Login background">
+        </div>
+        <div class="form-section">
+            <h1>Log in to Exclusive</h1>
+            <p>Enter your details below</p>
+            
+            <form action="/login" method="POST">
+                <div class="form-group">
+                    <label for="email">Email or Phone Number</label>
+                    <input type="text" id="email" name="email" >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" >
+                </div>
+
+                <% if(locals.message && message.length > 0) { %>
+                    <div class="error-message">
+                        <%= message %>
+                    </div>
+                <% } %>
+
+                <button type="submit">Log In</button>
+                <div class="social-btns">
+                    <a href="/auth/google" class="btn btn-danger btn-block google-btn">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-google me-2" viewBox="0 0 16 16">
+                        <path d="M15.545 6.558a9.4 9.4 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.7 7.7 0 0 1 5.352 2.082l-2.284 2.284A4.35 4.35 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.8 4.8 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.7 3.7 0 0 0 1.599-2.431H8v-3.08z"/>
+                      </svg>
+                      Sign up with Google
+                    </a>
+                  </div>
+                
+                <div class="form-footer">
+                    <a href="/forgot-password">Forgot Password?</a>
+                    <span>Don't have an account? <a href="/signup">Sign Up</a></span>
+                </div>
+            </form>
+        </div>
+        <div class="image-section"></div>
+    </div>
+
+
+    <script>
+        function validateForm() {
+            clearErrorMessages();
+
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+            let isValid = true;
+
+            if (!validateEmail(email)) {
+                displayErrorMessage("email-error", "Please enter a valid email address");
+                isValid = false;
+            }
+
+            if (password.length < 6) {
+                displayErrorMessage("password-error", "Password must be at least 6 characters long");
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function displayErrorMessage(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.innerText = message;
+                errorElement.style.display = "block";
+            }
+        }
+
+        function clearErrorMessages() {
+            const errorElements = document.querySelectorAll(".error-message");
+            errorElements.forEach((element) => {
+                element.innerText = "";
+                element.style.display = "none";
+            });
+        }
+    </script>
+</body>
+</html>
