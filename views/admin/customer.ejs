@@ -6,73 +6,68 @@ body {
     background-color: #f8f9fa;
 }
 
-.navbar-aside {
-    width: 260px;
-    background: #ffffff;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: width 0.3s ease-in-out;
-}
+.sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            background: #ffffff;
+            border-right: 1px solid #e5e5e5;
+            transition: width 0.3s ease;
+        }
 
-.navbar-aside:hover {
-    width: 280px;
-}
+        .sidebar:hover {
+            width: 280px;
+        }
 
-.brand-wrap {
-    text-align: center;
-    padding: 20px;
-    display: block;
-    font-size: 1.5rem;
-    letter-spacing: 2px;
-    color: #2d79c0;
-}
+        .brand {
+            padding: 2rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
 
-.menu-aside {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: 200;
+            letter-spacing: 0.2em;
+            color: #000000;
+            text-decoration: none;
+        }
 
-.menu-item {
-    position: relative;
-    overflow: hidden;
-}
+        .nav-menu {
+            padding: 1rem;
+        }
 
-.menu-link {
-    display: flex;
-    align-items: center;
-    padding: 15px 20px;
-    text-decoration: none;
-    color: #333;
-    font-weight: bold;
-    transition: all 0.4s ease;
-}
+        .nav-item {
+            list-style: none;
+            margin: 0.5rem 0;
+        }
+        .nav-item active{
 
-.menu-link i {
-    margin-right: 15px;
-    font-size: 1.2rem;
-    color: #2d79c0;
-    transition: transform 0.4s ease;
-}
+        }
 
-.menu-link:hover i {
-    transform: rotate(360deg);
-    color: #28a745;
-}
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            color: #000000;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
 
-.menu-link:hover {
-    background: linear-gradient(to right, #2d79c0, #28a745);
-    color: #ffffff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
+        .nav-link:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
 
-.menu-link:hover span {
-    position: relative;
-    animation: bounce 0.6s ease infinite alternate;
-}
+        .nav-link i {
+            width: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .nav-link.active {
+            background-color: #000000;
+            color: #ffffff;
+        }
 
 @keyframes bounce {
     from {
@@ -133,56 +128,45 @@ body {
 </head>
 
 <body>
-    <div class="screen-overlay"></div>
-    <aside class="navbar-aside" id="offcanvas_aside">
-        <div class="aside-top">
-            <a href="/" class="brand-wrap " style="font-size: 25px;text-decoration: none; color: rgb(45, 121, 192) ; font-weight: bold;">
-                REVAGE
-            </a>
-            </a>
-            <div>
-                <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i>
-                </button>
-            </div>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <a href="/" class="brand-title">REVAGE</a>
         </div>
-        <nav>
-            <ul class="menu-aside">
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/dashboard"> <i class="fa-solid fa-house"></i></i>
-                        <span class="text">Dashboard</span>
+        <nav class="nav-menu">
+            <ul>
+                <li class="nav-item">
+                    <a href="/admin/dashboard" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
                     </a>
                 </li>
-                <li class="menu-item active">
-                    <a class="menu-link" href="/admin/users"> <i class="fa-solid fa-list"></i></i>
-                        <span class="text">customers</span>
+                <li class="nav-item">
+                    <a href="/admin/users" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
                     </a>
                 </li>
-
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/category"> <i class="fa-solid fa-list"></i></i>
-                        <span class="text">category</span>
+                <li class="nav-item">
+                    <a href="/admin/category" class="nav-link">
+                        <i class="fas fa-list"></i>
+                        <span>Category</span>
                     </a>
                 </li>
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/product-add"><i class="fa-brands fa-product-hunt"></i>
-                        <span class="text">Add Products</span>
+                
+                <li class="nav-item">
+                    <a href="/admin/products" class="nav-link active">
+                        <i class="fas fa-box"></i>
+                        <span>Products</span>
                     </a>
                 </li>
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/products"><i class="fa-brands fa-product-hunt"></i></i>
-                        <span class="text">Products</span>
+                <li class="nav-item">
+                    <a href="/admin/product-add" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Products</span>
                     </a>
                 </li>
-
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/orders"><i class="fa-brands fa-product-hunt"></i></i>
-                        <span class="text">orders</span>
-                    </a>
-                </li>
-
             </ul>
-            <br>
-            <br>
         </nav>
     </aside>
 

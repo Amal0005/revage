@@ -1,307 +1,369 @@
-<style>
-    /* Base Styles */
-body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    background-color: #f8f9fa;
-}
-
-.navbar-aside {
-    width: 260px;
-    background: #ffffff;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: width 0.3s ease-in-out;
-}
-
-.navbar-aside:hover {
-    width: 280px;
-}
-
-.brand-wrap {
-    text-align: center;
-    padding: 20px;
-    display: block;
-    font-size: 1.5rem;
-    letter-spacing: 2px;
-    color: #2d79c0;
-}
-
-.menu-aside {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.menu-item {
-    position: relative;
-    overflow: hidden;
-}
-
-.menu-link {
-    display: flex;
-    align-items: center;
-    padding: 15px 20px;
-    text-decoration: none;
-    color: #333;
-    font-weight: bold;
-    transition: all 0.4s ease;
-}
-
-.menu-link i {
-    margin-right: 15px;
-    font-size: 1.2rem;
-    color: #2d79c0;
-    transition: transform 0.4s ease;
-}
-
-.menu-link:hover i {
-    transform: rotate(360deg);
-    color: #28a745;
-}
-
-.menu-link:hover {
-    background: linear-gradient(to right, #2d79c0, #28a745);
-    color: #ffffff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.menu-link:hover span {
-    position: relative;
-    animation: bounce 0.6s ease infinite alternate;
-}
-
-@keyframes bounce {
-    from {
-        transform: translateY(0px);
-    }
-    to {
-        transform: translateY(-5px);
-    }
-}
-
-.menu-item.active .menu-link {
-    background: #28a745;
-    color: #ffffff;
-}
-
-.menu-item.active .menu-link i {
-    color: #ffffff;
-}
-
-/* Responsive Sidebar */
-@media (max-width: 768px) {
-    .navbar-aside {
-        width: 70px;
-    }
-
-    .navbar-aside:hover {
-        width: 260px;
-    }
-
-    .menu-link span {
-        display: none;
-    }
-
-    .navbar-aside:hover .menu-link span {
-        display: inline;
-    }
-}
-
-</style>
+<!-- admin-dashboard.ejs -->
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>RevAge Dashboard</title>
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta property="og:title" content="">
-    <meta property="og:type" content="">
-    <meta property="og:url" content="">
-    <meta property="og:image" content="">
-    <!-- Favicon -->
-    <link rel="shortcut icon" type="image/x-icon" href="">
-   <!---fond-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
-    <link href="/evara-backend/assets/css/main.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="/evara-backend/assets/imgs">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        /* Elegant Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            background: #ffffff;
+            border-right: 1px solid #e5e5e5;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar:hover {
+            width: 280px;
+        }
+
+        .brand {
+            padding: 2rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: 200;
+            letter-spacing: 0.2em;
+            color: #000000;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            padding: 1rem;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin: 0.5rem 0;
+        }
+        .nav-item active{
+
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            color: #000000;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        .nav-link i {
+            width: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .nav-link.active {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 200;
+            letter-spacing: 0.1em;
+        }
+
+        .search-container {
+            position: relative;
+            width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid #e5e5e5;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #000000;
+        }
+
+        /* Product Table */
+        .table-container {
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .product-table th {
+            text-align: left;
+            padding: 1rem;
+            background: #f8f8f8;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .product-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .product-table tr:hover {
+            background-color: #f8f8f8;
+        }
+
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e5e5;
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-blocked {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            padding: 0.5rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e5e5;
+            background: transparent;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover {
+            background-color: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .page-btn.active {
+            background-color: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+    </style>
 </head>
-
 <body>
-    <div class="screen-overlay"></div>
-    <aside class="navbar-aside" id="offcanvas_aside">
-        <div class="aside-top">
-            <a href="/" class="brand-wrap " style="font-size: 25px;text-decoration: none; color: rgb(45, 121, 192) ; font-weight: bold;">
-                REVAGE
-            </a>
-            <div>
-                <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i>
-                </button>
-            </div>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <a href="/" class="brand-title">REVAGE</a>
         </div>
-        <nav>
-            <ul class="menu-aside">
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/dashboard"> <i class="fa-solid fa-house"></i></i>
-                        <span class="text">Dashboard</span>
+        <nav class="nav-menu">
+            <ul>
+                <li class="nav-item">
+                    <a href="/admin/dashboard" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
                     </a>
                 </li>
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/users"> <i class="fa-solid fa-list"></i></i>
-                        <span class="text">customers</span>
+                <li class="nav-item">
+                    <a href="/admin/users" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
                     </a>
                 </li>
-
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/category"> <i class="fa-solid fa-list"></i></i>
-                        <span class="text">category</span>
+                <li class="nav-item">
+                    <a href="/admin/category" class="nav-link">
+                        <i class="fas fa-list"></i>
+                        <span>Category</span>
                     </a>
                 </li>
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/product-add"><i class="fa-brands fa-product-hunt"></i>
-                        <span class="text">Add Products</span>
+                
+                <li class="nav-item">
+                    <a href="/admin/products" class="nav-link active">
+                        <i class="fas fa-box"></i>
+                        <span>Products</span>
                     </a>
                 </li>
-                <li class="menu-item active">
-                    <a class="menu-link" href="/admin/products"><i class="fa-brands fa-product-hunt"></i></i>
-                        <span class="text">Products</span>
+                <li class="nav-item">
+                    <a href="/admin/product-add" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Products</span>
                     </a>
                 </li>
-
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/orders"><i class="fa-brands fa-product-hunt"></i></i>
-                        <span class="text">orders</span>
-                    </a>
-                </li>
-
             </ul>
-            <br>
-            <br>
         </nav>
     </aside>
 
-
-    <main class="main-wrap">
-        <!-- <header class="main-header navbar"> -->
-            <div class="col-search">
-               
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <h1 class="page-title">Products</h1>
+            <div class="search-container">
+                <form action="/admin/products" method="GET">
+                    <input type="text" name="search" class="search-input" placeholder="Search products...">
                 </form>
             </div>
-            <div class="col-nav">
-                <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i
-                        class="material-icons md-apps"></i> </button>
-                <ul class="nav">
-                    <!-- <li class="dropdown nav-item">
-                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount"
-                            aria-expanded="false"> <img class="img-xs rounded-circle"
-                                src='https://wallpapers.com/images/hd/viking-archery-fy7xjdref2rezzoj.jpg'
-                                alt="User"></a>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
-                            <a class="dropdown-item text-danger" href="/admin/logout"><i
-                                    class="material-icons md-exit_to_app"></i>Logout</a>
-                        </div>
-                    </li> -->
-                </ul>
-            </div>
-        </header><head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
-</head>
-<div class="content-header">
-    <div>
-        <h2 class="content-title card-title">Products</h2>
-    </div>
-</div>
-<header class="card-header text-center mb-20">
-    <form action="/admin/products" method="get" class="d-inline">
-        <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px;">
-            <input type="text" class="form-control border-0 rounded-pill" placeholder="Search products" name="search">
-            <button class="btn border-0" type="submit">Search</button>
-        </div>
-    </form>
-</header>
-<div class="right mt-5">
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th scope="col"><b>Product Image</b></th>
-                <th scope="col"><b>Product name</b></th>
-                <th scope="col"><b>Category</b></th>
-                <th scope="col"><b>Regular Price</b></th>
-                <th scope="col"><b>Sale Price</b></th>
-                <th scope="col"><b>Quantity</b></th>
-                <th scope="col"><b>Status</b></th>
-                <th scope="col"><b>Action</b></th>
-            </tr>
-        </thead>
-        <tbody>
-            <% if(data && data.length > 0) { %>
-                <% data.forEach(function(product) { %>
+        </header>
+
+        <div class="table-container">
+            <table class="product-table">
+                <thead>
                     <tr>
-                        <td>
-                            <div class="product-img-container" style="width: 100px; height: 100px;">
-                                <% if(product.productImage && product.productImage.length > 0) { %>
-                                    <img class="img-fluid rounded" 
-                                    src="<%= '/uploads/product-images/' + product.productImage[0] %>" 
-                                         alt="<%= product.productName %>"
-                                         style="width: 100%; height: 100%; object-fit: cover;">
-                                <% } else { %>
-                                    <div class="no-image-placeholder rounded bg-light d-flex align-items-center justify-content-center" 
-                                         style="width: 100%; height: 100%;">
-                                        <i class="fas fa-image text-muted"></i>
-                                    </div>
-                                <% } %>
-                            </div>
-                        </td>
-                        <td><b><%= product.productName %></b></td>
-                        <td><%= product.category ? product.category.name : 'N/A' %></td>
-                        <td>₹<%= product.regularPrice %></td>
-                        <td>₹<%= product.salePrice %></td>
-                        <td><%= product.quantity %></td>
-                        <td>
-                            <% if(product.isBlocked) { %>
-                                <span class="badge rounded-pill alert-danger">Blocked</span>
-                            <% } else { %>
-                                <span class="badge rounded-pill alert-success">Active</span>
-                            <% } %>
-                        </td>
-                        <td class="text-end">
-                            <div class="dropdown">
-                                <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm">
-                                    <i class="material-icons md-more_horiz"></i>
-                                </a>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item" href="/admin/edit-product?id=<%= product._id %>">Edit info</a>
-                                    <% if(product.isBlocked) { %>
-                                        <a class="dropdown-item text-success" href="javascript:void(0);" 
-                                           onclick="confirmAction('/admin/unblock-product?id=<%= product._id %>', 'unblock')">Unblock</a>
-                                    <% } else { %>
-                                        <a class="dropdown-item text-danger" href="javascript:void(0);" 
-                                           onclick="confirmAction('/admin/block-product?id=<%= product._id %>', 'block')">Block</a>
-                                    <% } %>
-                                    
-                                </div>
-                            </div>
-                        </td>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Regular Price</th>
+                        <th>Sale Price</th>
+                        <th>Quantity</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
-                <% }); %>
-            <% } else { %>
-                <tr>
-                    <td colspan="8" class="text-center py-4">
-                        <div class="alert alert-info mb-0">
-                            <i class="fas fa-info-circle me-2"></i>
-                            No products found
-                        </div>
-                    </td>
-                </tr>
-            <% } %>
-        </tbody>
-    </table>
-</div>
+                </thead>
+                <tbody>
+                    <% if(data && data.length > 0) { %>
+                        <% data.forEach(function(product) { %>
+                            <tr>
+                                <td>
+                                    <div class="product-info">
+                                        <img src="/uploads/product-images/<%= product.productImage[0] %>" 
+                                             alt="<%= product.productName %>"
+                                             class="product-image">
+                                        <span><%= product.productName %></span>
+                                    </div>
+                                </td>
+                                <td><%= product.category ? product.category.name : 'N/A' %></td>
+                                <td>₹<%= product.regularPrice %></td>
+                                <td>₹<%= product.salePrice %></td>
+                                <td><%= product.quantity %></td>
+                                <td>
+                                    <span class="status-badge <%= product.isBlocked ? 'status-blocked' : 'status-active' %>">
+                                        <%= product.isBlocked ? 'Blocked' : 'Active' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="action-btn" onclick="window.location.href='/admin/edit-product?id=<%= product._id %>'">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn" onclick="confirmAction('/admin/<%= product.isBlocked ? 'unblock' : 'block' %>-product?id=<%= product._id %>', '<%= product.isBlocked ? 'unblock' : 'block' %>')">
+                                        <i class="fas fa-<%= product.isBlocked ? 'unlock' : 'lock' %>"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem;">
+                                No products found
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <% if (totalPages > 1) { %>
+            <div class="pagination">
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <button class="page-btn <%= currentPage === i ? 'active' : '' %>" 
+                            onclick="window.location.href='/admin/products?page=<%= i %>'">
+                        <%= i %>
+                    </button>
+                <% } %>
+            </div>
+        <% } %>
+    </main>
+
+    <script>
+        function confirmAction(url, action) {
+            if (confirm(`Are you sure you want to ${action} this product?`)) {
+                window.location.href = url;
+            }
+        }
+    </script>
+</body>
+</html>
 
 <% if (totalPages > 1) { %>
     <div class="pagination justify-content-center mt-4">

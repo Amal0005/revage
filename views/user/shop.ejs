@@ -336,13 +336,13 @@
 </style>
 
 <div class="shop-container">
-    <header class="shop-header">
+    <!-- <header class="shop-header">
         <h1 class="shop-title">Shop</h1>
-    </header>
+    </header> -->
 
     <div class="controls-wrapper">
         <form class="search-form" action="/shop" method="GET">
-            <input type="text" name="search" class="search-input" placeholder="Search products..." value="<%= searchQuery || '' %>">
+            <input type="text" name="search" class="search-input" placeholder="Search products..." value="<%= query?.search || '' %>">
             <button type="submit" class="search-button">Search</button>
         </form>
 

@@ -206,7 +206,7 @@
 }
 
 .price-container .offer-badge {
-  background: #ffd700; /* Gold background */
+  background: #fff3cd; /* Gold background */
   color: #333333; /* Dark text */
   font-size: 0.8rem; /* Small badge text */
   padding: 5px 10px; /* Padding for the badge */
@@ -578,29 +578,19 @@
   <!-- Products Section -->
   <div class="container">
     <div class="row align-items-stretch">
-      <% if (products && products.length > 0) { %>
-        <% products.forEach(function(product) { %>
-          <div class="col-lg-4 col-md-6"> <!-- Changed to col-lg-4 for 3 items per row -->
+      <% if (newArrivals && newArrivals.length > 0) { %>
+        <% newArrivals.forEach(function(product) { %>
+          <div class="col-lg-4 col-md-6"> 
             <div class="product-card">
-              <div class="product-image-wrapper">
-                <% if (product.productImage && product.productImage.length > 0) { %>
-                  <img src="<%= '/uploads/product-images/' + product.productImage[0] %>" 
-                       class="product-image" 
-                       alt="<%= product.productName %>">
-                  
-                  <% if (product.productImage.length > 1) { %>
-                    <img src="/uploads/product-images/<%= product.productImage[1] %>" 
-                         class="product-image secondary-image" 
-                         alt="<%= product.productName %> - Alternative">
-                  <% } %>
-                <% } else { %>
-                  <div class="no-image-placeholder d-flex align-items-center justify-content-center bg-light h-100">
-                    <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
-                  </div>
-                <% } %>
+              <div class="product-image">
+                <img src="/uploads/product-images/<%= product.productImage[0] %>" 
+                     class="product-image" 
+                     alt="<%= product.productName %>">
                 
-                <% if (product.quantity <= 0) { %>
-                  <span class="stock-badge bg-danger">Out of Stock</span>
+                <% if (product.productImage.length > 1) { %>
+                  <img src="/uploads/product-images/<%= product.productImage[1] %>" 
+                       class="product-image secondary-image" 
+                       alt="<%= product.productName %> - Alternative">
                 <% } %>
               </div>
 
@@ -747,8 +737,9 @@
   
           </div>
         </div>
-      </div> -->
+      </div>
   
+      
       <!-- <div class="site-section">
         <div class="container">
           <div class="row">

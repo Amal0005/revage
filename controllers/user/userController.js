@@ -13,38 +13,60 @@ const pageNotFound = async (req, res) => {
     res.redirect("/pageNotFound");
   }
 };
+
 const loadHomepage = async (req, res) => {
-  try {
-    // Get all active categories first
-    const categories = await category.find({ isListed: true });
-    const categoryIds = categories.map(cat => cat._id);
+    try {
+        // Get user data if logged in
+        let userData = null;
+        if (req.session && req.session.user) {
+            userData = await User.findById(req.session.user);
+        }
 
-    // Get products from active categories
-    let productData = await Product.find({
-      isBlocked: false,
-      category: { $in: categoryIds },
-      quantity: { $gt: 0 }
-    }).populate('category');
+        // Get active categories
+        const categories = await category.find({ isListed: true });
+        const categoryIds = categories.map(cat => cat._id);
 
-    // Sort by creation date and get latest 6 products
-    productData.sort((a,b) => new Date(a.createdOn) - new Date(b.createdOn));
-    productData = productData.slice(0, 6);
+        // Base query for active products
+        const baseQuery = {
+            isBlocked: false,
+            category: { $in: categoryIds },
+            quantity: { $gt: 0 }
+        };
 
-    // Get user data if logged in
-    let userData = null;
-    if (req.session && req.session.user) {
-      userData = await User.findById(req.session.user);
+        // Get featured products
+        const featuredProducts = await Product.find({
+            ...baseQuery,
+            isFeatured: true
+        })
+        .populate('category')
+        .limit(8);
+
+        // Get new arrivals
+        const newArrivals = await Product.find(baseQuery)
+            .populate('category')
+            .sort({ createdAt: -1 })
+            .limit(8);
+
+        // Get best sellers
+        const bestSellers = await Product.find(baseQuery)
+            .populate('category')
+            .sort({ purchaseCount: -1 })
+            .limit(8);
+
+        res.render("user/home", {
+            user: userData,
+            categories,
+            featuredProducts,
+            newArrivals,
+            bestSellers
+        });
+
+    } catch (error) {
+        console.error("Error in loadHomepage:", error);
+        res.status(500).render("page-404", { 
+            message: "Failed to load homepage"
+        });
     }
-
-    res.render("user/home", { 
-      user: userData,
-      products: productData,
-      categories: categories
-    });
-  } catch (error) {
-    console.error("Error in loadHomepage:", error);
-    res.status(500).render("page-404", { error: "Failed to load homepage" });
-  }
 };
 
 const loadLogin = async (req, res) => {
@@ -55,6 +77,7 @@ const loadLogin = async (req, res) => {
     res.status(500).send("userlogin error");
   }
 };
+
 const loadSignup = async (req, res) => {
   try {
     return res.render("user/signup");
@@ -99,13 +122,10 @@ async function sendVerificationEmail(email, otp) {
   }
 }
 
-
-
 const signup = async (req, res) => {
   try {
     const { name, phone, email, password, cPassword } = req.body;
     console.log("name",req.body);
-
 
     const otp = generateOtp();
     const emailSent = await sendVerificationEmail(email, otp);
@@ -220,8 +240,6 @@ const resendOtp = async (req, res) => {
   }
 };
 
-
-
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -265,6 +283,7 @@ const logout =async(req,res)=>{
     
   }
 }
+
 const userProfile = async (req, res) => {
   try {
       const user = req.session.user;
@@ -289,7 +308,7 @@ const loadShoppingPage = async (req, res) => {
   try {
     const user = req.session.user;
     const userData = await User.findOne({ _id})
-    const categories = await Category.find({isListed:true});
+    const categories = await category.find({isListed:true});
     const categoryIds=categories.map((category)=>category._id.toString());
     const page=parseInt(req.query.page)||1;
     const limit = 9;
@@ -325,7 +344,6 @@ const loadShoppingPage = async (req, res) => {
   }
 }
 
-
 const productDetail = async (req, res) => {
   try {
       const userId = req.session.user;
@@ -358,8 +376,6 @@ const productDetail = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   loadHomepage,
   pageNotFound,
@@ -373,6 +389,6 @@ module.exports = {
   userProfile,
   loadShoppingPage,
   productDetail,
-   generateOtp, 
-   sendVerificationEmail 
+  generateOtp, 
+  sendVerificationEmail 
 };
