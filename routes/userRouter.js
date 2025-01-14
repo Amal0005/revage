@@ -99,5 +99,6 @@ router.get("/reset-password", profileController.getResetPasswordPage);
 router.post('/add-address', userAuth, profileController.addAddress);
 router.put('/edit-address/:index', userAuth, profileController.updateAddress);
 router.delete('/delete-address/:index', userAuth, profileController.deleteAddress);
+router.get('/get-address/:index', userAuth, profileController.getAddress);
 
 module.exports=router;

@@ -375,13 +375,7 @@
                 </ul>
             </div>
 
-            <div class="filter-section">
-                <h3 class="filter-title">Price Range</h3>
-                <button class="price-button">Under ₹500</button>
-                <button class="price-button">₹500 - ₹1000</button>
-                <button class="price-button">₹1000 - ₹1500</button>
-                <button class="price-button">Above ₹1500</button>
-            </div>
+            
         </aside>
 
         <main class="product-grid">
@@ -428,46 +422,6 @@
 </div>
 
 <script>
-async function addToCart(productId) {
-    try {
-        const response = await fetch('/cart/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                productId,
-                quantity: 1
-            })
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: 'Product added to cart successfully!',
-                showConfirmButton: false,
-                timer: 1500
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: data.message || 'Failed to add product to cart'
-            });
-        }
-    } catch (error) {
-        console.error('Error adding to cart:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Failed to add product to cart'
-        });
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     const sortSelect = document.getElementById('sortSelect');
     
@@ -480,39 +434,69 @@ document.addEventListener('DOMContentLoaded', function() {
 
     sortSelect.addEventListener('change', async function() {
         try {
-            const url = new URL(window.location.href);
-            url.searchParams.set('sort', this.value);
-            
             // Show loading state
             const productGrid = document.querySelector('.product-grid');
             if (productGrid) {
                 productGrid.style.opacity = '0.5';
             }
 
+            // Build the URL with current filters and new sort
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', this.value);
+            
+            // Keep existing filters
+            if (urlParams.has('category')) {
+                url.searchParams.set('category', urlParams.get('category'));
+            }
+            if (urlParams.has('search')) {
+                url.searchParams.set('search', urlParams.get('search'));
+            }
+            if (urlParams.has('minPrice')) {
+                url.searchParams.set('minPrice', urlParams.get('minPrice'));
+            }
+            if (urlParams.has('maxPrice')) {
+                url.searchParams.set('maxPrice', urlParams.get('maxPrice'));
+            }
+
             // Fetch sorted products
             const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const html = await response.text();
             
-            // Create a temporary container
+            // Create a temporary container and parse the HTML
             const temp = document.createElement('div');
             temp.innerHTML = html;
             
-            // Replace the product grid
-            const newGrid = temp.querySelector('.product-grid');
-            if (productGrid && newGrid) {
-                productGrid.innerHTML = newGrid.innerHTML;
+            // Find the product grid content
+            const newProducts = temp.querySelector('.product-grid');
+            
+            if (newProducts) {
+                productGrid.innerHTML = newProducts.innerHTML;
                 productGrid.style.opacity = '1';
+                
+                // Update URL without refreshing
+                window.history.pushState({}, '', url);
+            } else {
+                throw new Error('Could not find product grid in response');
             }
 
-            // Update URL without refreshing
-            window.history.pushState({}, '', url);
         } catch (error) {
             console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: error.message || 'Something went wrong!'
+                text: 'Failed to sort products. Please try again.'
             });
+            
+            // Reset opacity
+            const productGrid = document.querySelector('.product-grid');
+            if (productGrid) {
+                productGrid.style.opacity = '1';
+            }
         }
     });
 });

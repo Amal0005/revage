@@ -16,6 +16,8 @@ db()
 
 
 app.use(express.json());
+// In your Express app setup
+app.use(express.static('public'));
 app.use(express.urlencoded({extended:true}))
 app.use(session({
     secret:process.env.SESSION_SECRET,

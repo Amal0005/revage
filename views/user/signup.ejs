@@ -1,370 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Revage - Sign Up for Exclusive</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Arial", sans-serif;
+      }
 
-        body {
-            background-color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+      body {
+        background-color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
 
+      .container {
+        display: flex;
+        width: 100%;
+        max-width: 1000px; /* Reduced from 1200px */
+        height: 90vh; /* Reduced from 100vh */
+        background: #fff;
+      }
+
+      .form-section {
+        margin-left: 100px;
+        margin-top: 50px;
+        flex: 1;
+        padding: 30px 40px; /* Reduced padding */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-width: 450px; /* Reduced from 600px */
+      }
+
+      .image-section {
+        flex: 1;
+        position: relative;
+        min-height: 100%;
+        overflow: hidden;
+      }
+
+      .image-section img {
+        width: 80%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 100px;
+        right: -10px;
+      }
+
+      .logo {
+        position: fixed;
+        top: 20px;
+        left: 40px;
+        font-size: 24px;
+        font-weight: bold;
+        z-index: 100;
+      }
+
+      nav {
+        position: fixed;
+        top: 20px;
+        right: 40px;
+        z-index: 100;
+      }
+
+      nav a {
+        margin-left: 20px;
+        text-decoration: none;
+        color: #000;
+        font-size: 14px;
+      }
+
+      h1 {
+        font-size: 24px; /* Reduced from 28px */
+        margin-bottom: 8px;
+      }
+
+      p {
+        color: #666;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+
+      .form-group {
+        position: relative;
+        margin-bottom: 16px;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        font-size: 14px;
+        background: transparent;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-group input:focus {
+        border-color: #000;
+        outline: none;
+      }
+
+      .form-group label {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #fff;
+        padding: 0 5px;
+        font-size: 14px;
+        color: #666;
+        transition: all 0.3s ease;
+        pointer-events: none;
+      }
+
+      .form-group input:focus + label,
+      .form-group input:not(:placeholder-shown) + label {
+        top: 0;
+        font-size: 12px;
+        color: #000;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: #000;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #333;
+      }
+
+      .social-btns {
+        display: flex;
+        justify-content: center;
+        margin: 16px 0;
+      }
+
+      .google-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        color: #fff;
+        background-color: #000000;
+        border: none;
+        padding: 12px 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-transform: uppercase;
+        text-decoration: none;
+      }
+
+      .google-btn svg {
+        margin-right: 8px;
+      }
+
+      .google-btn:hover {
+        background-color: #333;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .form-footer {
+        display: flex;
+        justify-content: center;
+        margin-top: 16px;
+        font-size: 14px;
+      }
+
+      .form-footer a {
+        color: #000;
+        text-decoration: none;
+        margin-left: 5px;
+      }
+
+      .form-footer a:hover {
+        text-decoration: underline;
+      }
+
+      .error-message {
+        color: #ff0000;
+        margin-top: 8px;
+        font-size: 12px;
+      }
+
+      @media (max-width: 768px) {
         .container {
-            display: flex;
-            width: 100%;
-            max-width: 1000px; /* Reduced from 1200px */
-            height: 90vh; /* Reduced from 100vh */
-            background: #fff;
-        }
-
-        .form-section {
-          margin-left: 100px;
-          margin-top: 50px;
-            flex: 1;
-            padding: 30px 40px; /* Reduced padding */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            max-width: 450px; /* Reduced from 600px */
+          flex-direction: column;
+          height: 100vh;
+          max-width: 100%;
         }
 
         .image-section {
-            flex: 1;
-            position: relative;
-            min-height: 100%;
-            overflow: hidden;
+          display: none;
         }
 
-        .image-section img {
-            width: 80%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 100px;
-            right: -10px;
+        .form-section {
+          width: 100%;
+          padding: 20px;
+          max-width: none;
         }
 
         .logo {
-            position: fixed;
-            top: 20px;
-            left: 40px;
-            font-size: 24px;
-            font-weight: bold;
-            z-index: 100;
+          position: absolute;
         }
 
         nav {
-            position: fixed;
-            top: 20px;
-            right: 40px;
-            z-index: 100;
+          position: absolute;
         }
-
-        nav a {
-            margin-left: 20px;
-            text-decoration: none;
-            color: #000;
-            font-size: 14px;
-        }
-
-        h1 {
-            font-size: 24px; /* Reduced from 28px */
-            margin-bottom: 8px;
-        }
-
-        p {
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .form-group {
-            position: relative;
-            margin-bottom: 16px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            font-size: 14px;
-            background: transparent;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus {
-            border-color: #000;
-            outline: none;
-        }
-
-        .form-group label {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #fff;
-            padding: 0 5px;
-            font-size: 14px;
-            color: #666;
-            transition: all 0.3s ease;
-            pointer-events: none;
-        }
-
-        .form-group input:focus + label,
-        .form-group input:not(:placeholder-shown) + label {
-            top: 0;
-            font-size: 12px;
-            color: #000;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #000;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #333;
-        }
-
-        .social-btns {
-            display: flex;
-            justify-content: center;
-            margin: 16px 0;
-        }
-
-        .google-btn {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            color: #fff;
-            background-color: #000000;
-            border: none;
-            padding: 12px 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            text-transform: uppercase;
-            text-decoration: none;
-        }
-
-        .google-btn svg {
-            margin-right: 8px;
-        }
-
-        .google-btn:hover {
-            background-color: #333;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .form-footer {
-            display: flex;
-            justify-content: center;
-            margin-top: 16px;
-            font-size: 14px;
-        }
-
-        .form-footer a {
-            color: #000;
-            text-decoration: none;
-            margin-left: 5px;
-        }
-
-        .form-footer a:hover {
-            text-decoration: underline;
-        }
-
-        .error-message {
-            color: #ff0000;
-            margin-top: 8px;
-            font-size: 12px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-                height: 100vh;
-                max-width: 100%;
-            }
-
-            .image-section {
-                display: none;
-            }
-
-            .form-section {
-                width: 100%;
-                padding: 20px;
-                max-width: none;
-            }
-
-            .logo {
-                position: absolute;
-            }
-
-            nav {
-                position: absolute;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="logo">REVAGE</div>
     <nav>
-        <a href="/contact">Contact</a>
-        <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+      <a href="/about">About</a>
     </nav>
 
     <div class="container">
-       
-        <div class="form-section">
-            <h1>Create Your Account</h1>
-            <p>Enter your details below</p>
-            
-            <form action="/signup" method="POST">
-                <div class="form-group">
-                    <input type="text" id="username" name="username" placeholder=" " >
-                    <label for="username">Username</label>
-                </div>
+      <div class="form-section">
+        <h1>Create Your Account</h1>
+        <p>Enter your details below</p>
 
-                <div class="form-group">
-                    <input type="email" id="email" name="email" placeholder=" " >
-                    <label for="email">Email</label>
+        <form action="/signup" method="POST" onsubmit="return validateForm()">
+            <div class="form-group">
+                <input type="text" id="username" name="username" placeholder=" " />
+                <label for="username">Username</label>
+                <span id="username-error" class="error-message"></span>
+            </div>
+        
+            <div class="form-group">
+                <input type="email" id="email" name="email" placeholder=" " />
+                <label for="email">Email</label>
+                <span id="email-error" class="error-message"></span>
+            </div>
+        
+            <div class="form-group">
+                <input type="tel" id="phone" name="phone" placeholder=" " />
+                <label for="phone">Phone Number</label>
+                <span id="phone-error" class="error-message"></span>
+            </div>
+        
+            <div class="form-group">
+                <input type="password" id="password" name="password" placeholder=" " />
+                <label for="password">Password</label>
+                <span id="password-error" class="error-message"></span>
+            </div>
+        
+            <div class="form-group">
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder=" " />
+                <label for="confirmPassword">Confirm Password</label>
+                <span id="confirmPassword-error" class="error-message"></span>
+            </div>
+        
+            <% if (locals.message && message.length > 0) { %>
+                <div class="error-message">
+                    <%= message %>
                 </div>
+            <% } %>
+        
+            <button type="submit">Sign Up</button>
+        
 
-                <div class="form-group">
-                    <input type="tel" id="phone" name="phone" placeholder=" " >
-                    <label for="phone">Phone Number</label>
-                </div>
+          <div class="social-btns">
+            <a href="/auth/google" class="google-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="currentColor"
+                class="bi bi-google me-2"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M15.545 6.558a9.4 9.4 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.7 7.7 0 0 1 5.352 2.082l-2.284 2.284A4.35 4.35 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.8 4.8 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.7 3.7 0 0 0 1.599-2.431H8v-3.08z"
+                />
+              </svg>
+              Sign up with Google
+            </a>
+          </div>
 
-                <div class="form-group">
-                    <input type="password" id="password" name="password" placeholder=" " >
-                    <label for="password">Password</label>
-                </div>
-
-                <div class="form-group">
-                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder=" " >
-                    <label for="confirmPassword">Confirm Password</label>
-                </div>
-
-                <% if(locals.message && message.length > 0) { %>
-                    <div class="error-message">
-                        <%= message %>
-                    </div>
-                <% } %>
-
-                <button type="submit">Sign Up</button>
-
-                <div class="social-btns">
-                    <a href="/auth/google" class="google-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-google me-2" viewBox="0 0 16 16">
-                            <path d="M15.545 6.558a9.4 9.4 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.7 7.7 0 0 1 5.352 2.082l-2.284 2.284A4.35 4.35 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.8 4.8 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.7 3.7 0 0 0 1.599-2.431H8v-3.08z"/>
-                        </svg>
-                        Sign up with Google
-                    </a>
-                </div>
-                
-                <div class="form-footer">
-                    <span>Already have an account?</span>
-                    <a href="/login">Log In</a>
-                </div>
-            </form>
-        </div>
-        <div class="image-section">
-          <img src="images/img13.jpeg" alt="Signup background">
+          <div class="form-footer">
+            <span>Already have an account?</span>
+            <a href="/login">Log In</a>
+          </div>
+        </form>
+      </div>
+      <div class="image-section">
+        <img src="images/img13.jpeg" alt="Signup background" />
       </div>
     </div>
 
+    <script>
+     function validateForm() {
+    clearErrorMessages();
 
+    const username = document.getElementById("username").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const confirmPassword = document.getElementById("confirmPassword").value.trim();
 
-  <script>
-function validateForm() {
-  clearErrorMessages();
+    let isValid = true;
 
-  const username = document.getElementById("username").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const confirmPassword = document.getElementById("confirmPassword").value.trim();
-  let isValid = true;
+    // Username validation
+    if (username.length < 3) {
+        displayErrorMessage("username-error", "Username must be at least 3 characters long.");
+        isValid = false;
+    }
 
-  // Username validation
-  if (username.length < 3) {
-    displayErrorMessage("username-error", "Username must be at least 3 characters long");
-    isValid = false;
-  }
+    // Email validation
+    if (!validateEmail(email)) {
+        displayErrorMessage("email-error", "Please enter a valid email address.");
+        isValid = false;
+    }
 
-  // Email validation
-  if (!validateEmail(email)) {
-    displayErrorMessage("email-error", "Please enter a valid email address");
-    isValid = false;
-  }
+    // Phone validation
+    if (!validatePhone(phone)) {
+        displayErrorMessage("phone-error", "Please enter a valid 10-digit phone number.");
+        isValid = false;
+    }
 
-  // Phone validation
-  if (!validatePhone(phone)) {
-    displayErrorMessage("phone-error", "Please enter a valid phone number (10 digits)");
-    isValid = false;
-  }
+    // Password validation
+    if (password.length < 8) {
+        displayErrorMessage("password-error", "Password must be at least 8 characters long.");
+        isValid = false;
+    }
 
-  // Password validation
-  if (password.length < 8) {
-    displayErrorMessage("password-error", "Password must be at least 6 characters long");
-    isValid = false;
-  }
+    // Confirm Password validation
+    if (password !== confirmPassword) {
+        displayErrorMessage("confirmPassword-error", "Passwords do not match.");
+        isValid = false;
+    }
 
-  // Confirm Password validation
-  if (password !== confirmPassword) {
-    displayErrorMessage("confirmPassword-error", "Passwords do not match");
-    isValid = false;
-  }
-
-  return isValid;
+    return isValid; // Only submit if all fields are valid
 }
 
+// Helper function to validate email format
 function validateEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex for email
+    return re.test(email);
 }
 
+// Helper function to validate phone number format
 function validatePhone(phone) {
-  const re = /^[0-9]{10}$/;
-  return re.test(phone);
+    const re = /^[0-9]{10}$/; // Regex for 10-digit phone number
+    return re.test(phone);
 }
 
+// Display an error message for a specific field
 function displayErrorMessage(elementId, message) {
-  const errorElement = document.getElementById(elementId);
-  if (errorElement) {
-    errorElement.innerText = message;
-    errorElement.style.display = "block";
-  }
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.innerText = message; // Set error message text
+        errorElement.style.display = "block"; // Make the error message visible
+    }
 }
 
+// Clear all error messages
 function clearErrorMessages() {
-  const errorElements = document.querySelectorAll(".error-message");
-  errorElements.forEach((element) => {
-    element.innerText = "";
-    element.style.display = "none";
-  });
+    const errorElements = document.querySelectorAll(".error-message");
+    errorElements.forEach((element) => {
+        element.innerText = ""; // Clear the error text
+        element.style.display = "none"; // Hide the element
+    });
 }
-  </script>
-</body>
+    </script>
+  </body>
 </html>

@@ -3,8 +3,7 @@ const bcrypt=require("bcryptjs")
 const nodemailer=require("nodemailer")
 const env=require("dotenv").config();
 const session=require("express-session");
-const Order = require("../../models/orderModel"); // Fixed import path
-// const { generateOtp, sendVerificationEmail } = require("./userController");
+const Order = require("../../models/orderSchema"); // Fixed import path
 const generateOtp=()=>{
     const digits="1234567890";
     let otp="";
@@ -419,10 +418,33 @@ const updateAddress = async (req, res) => {
     }
 };
 
+const getAddress = async (req, res) => {
+    try {
+      const userId = req.session.user;
+      const addressIndex = parseInt(req.params.index);
+      
+      const user = await User.findById(userId);
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+      
+      if (!user.addresses || addressIndex >= user.addresses.length) {
+        return res.status(404).json({ success: false, message: 'Address not found' });
+      }
+      
+      res.json(user.addresses[addressIndex]);
+    } catch (error) {
+      console.error('Error fetching address:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  };
+  
+
 const deleteAddress = async (req, res) => {
     try {
         const userId = req.session.user;
-        const { addressIndex } = req.body;
+        const addressIndex = req.params.index; // Changed from req.body to req.params
 
         const user = await User.findById(userId);
         if (!user) {
@@ -459,5 +481,6 @@ module.exports = {
     getResetPasswordPage,
     addAddress,
     updateAddress,
-    deleteAddress
+    deleteAddress,
+    getAddress
 };

@@ -1,5 +1,5 @@
 const Cart = require('../../models/cartModel');
-const Order = require('../../models/orderModel');
+const Order = require('../../models/orderSchema');
 const User = require('../../models/userSchema');
 
 const checkoutController = {

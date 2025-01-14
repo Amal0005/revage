@@ -108,7 +108,10 @@ const loadShoppingPage = async (req, res) => {
 
         // Add category filter if present
         if (req.query.category) {
-            baseQuery.category = req.query.category;
+            const category = await Category.findOne({ name: req.query.category });
+            if (category) {
+                baseQuery.category = category._id;
+            }
         }
 
         // Add price filter if present
@@ -118,10 +121,39 @@ const loadShoppingPage = async (req, res) => {
             if (req.query.maxPrice) baseQuery.price.$lte = parseFloat(req.query.maxPrice);
         }
 
-        // Get products with pagination
+        // Determine sort options based on the sort parameter
+        let sortOptions = { createdAt: -1 }; // default sort
+        switch (req.query.sort) {
+            case 'price-low':
+                sortOptions = { salePrice: 1 };
+                break;
+            case 'price-high':
+                sortOptions = { salePrice: -1 };
+                break;
+            case 'name-asc':
+                sortOptions = { productName: 1 };
+                break;
+            case 'name-desc':
+                sortOptions = { productName: -1 };
+                break;
+            case 'popularity':
+                sortOptions = { totalSales: -1 };
+                break;
+            case 'rating':
+                sortOptions = { averageRating: -1 };
+                break;
+            case 'new':
+                sortOptions = { createdAt: -1 };
+                break;
+            case 'featured':
+                sortOptions = { isFeatured: -1, createdAt: -1 };
+                break;
+        }
+
+        // Get products with pagination and sorting
         const products = await Product.find(baseQuery)
             .populate('category')
-            .sort({ createdAt: -1 })
+            .sort(sortOptions)
             .skip(skip)
             .limit(limit);
 
@@ -135,6 +167,15 @@ const loadShoppingPage = async (req, res) => {
             userData = await User.findById(req.session.user);
         }
 
+        // If it's an AJAX request, return just the product grid
+        if (req.xhr || req.headers.accept.includes('application/json')) {
+            return res.render('user/partials/product-grid', {
+                products,
+                user: userData
+            });
+        }
+
+        // Otherwise, render the full page
         res.render('user/shop', {
             products,
             categories,

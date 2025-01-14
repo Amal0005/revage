@@ -924,11 +924,11 @@ a:hover {
                       <form id="updateProfileForm">
                         <div class="mb-3">
                           <label for="name" class="form-label"><strong>Name:</strong></label>
-                          <input type="text" id="name" name="name" class="form-control" value="<%= user.name %>" required>
+                          <input type="text" id="name" name="name" class="form-control" value="<%= user.name %>" >
                         </div>
                         <div class="mb-3">
                           <label for="phone" class="form-label"><strong>Phone:</strong></label>
-                          <input type="text" id="phone" name="phone" class="form-control" value="<%= user.phone %>" required>
+                          <input type="text" id="phone" name="phone" class="form-control" value="<%= user.phone %>" >
                         </div>
                         <div class="mb-3">
                           <label for="email" class="form-label"><strong>Email:</strong></label>
@@ -965,20 +965,21 @@ a:hover {
                    </div>
                    <% if (user.addresses && user.addresses.length > 0) { %>
                      <% user.addresses.forEach((address, index) => { %>
-                       <div class="col-md-6 mb-4">
+                       <div class="col-md-6 mb-4" data-address-index="<%= index %>">
                          <div class="card">
                            <div class="card-body">
-                             <h5 class="card-title"><%= address.name %></h5>
+                             <h5 class="card-title" data-name><%= address.name %></h5>
                              <p class="card-text">
-                               <%= address.houseName %><br>
-                               <%= address.street %><br>
-                               <%= address.city %>, <%= address.state %><br>
-                               PIN: <%= address.pincode %><br>
-                               Phone: <%= address.phone %>
+                               <span data-house><%= address.houseName %></span><br>
+                               <span data-street><%= address.street %></span><br>
+                               <span data-city><%= address.city %></span><br>
+                               <span data-state><%= address.state %></span><br>
+                               <span data-pincode><%= address.pincode %></span><br>
+                               <span data-phone><%= address.phone %></span>
                              </p>
                              <div class="btn-group">
-                               <button class="btn btn-sm btn-dark" onclick="editAddress(<%= index %>)">Edit</button>
-                               <button class="btn btn-sm btn-danger" onclick="deleteAddress(<%= index %>)">Delete</button>
+                               <button class="btn btn-sm btn-dark" onclick="editAddress('<%= index %>')">Edit</button>
+                               <button class="btn btn-sm btn-danger" onclick="deleteAddress('<%= index %>')">Delete</button>
                              </div>
                            </div>
                          </div>
@@ -1251,6 +1252,8 @@ a:hover {
 </div>
 
 <script>
+
+
 function submitAddressForm() {
     if (!validateForm()) {
         return;
@@ -1299,51 +1302,182 @@ function submitAddressForm() {
     });
 }
 
-function validateForm() {
-    const form = document.getElementById('addAddressForm');
-    const inputs = form.querySelectorAll('input, select');
-    let isValid = true;
+// Edit address function
+function editAddress(index) {
+    // Get the address data from the existing DOM
+    const addressDiv = document.querySelector(`[data-address-index="${index}"]`);
+    if (!addressDiv) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Address not found'
+        });
+        return;
+    }
 
-    inputs.forEach(input => {
-        // Reset validation state
-        input.classList.remove('is-invalid');
-        
-        // Check required fields
-        if (input.hasAttribute('required') && !input.value.trim()) {
-            input.classList.add('is-invalid');
-            isValid = false;
-            return;
+    // Populate the modal with existing address data
+    document.getElementById('name').value = addressDiv.querySelector('[data-name]').textContent.trim();
+    document.getElementById('houseName').value = addressDiv.querySelector('[data-house]').textContent.trim();
+    document.getElementById('street').value = addressDiv.querySelector('[data-street]').textContent.trim();
+    document.getElementById('city').value = addressDiv.querySelector('[data-city]').textContent.trim();
+    document.getElementById('state').value = addressDiv.querySelector('[data-state]').textContent.trim();
+    document.getElementById('pincode').value = addressDiv.querySelector('[data-pincode]').textContent.trim();
+    document.getElementById('phone').value = addressDiv.querySelector('[data-phone]').textContent.trim();
+
+    // Update modal title and button
+    document.getElementById('addAddressModalLabel').textContent = 'Edit Address';
+    const submitButton = document.querySelector('#addAddressModal .btn-dark');
+    submitButton.textContent = 'Update Address';
+    submitButton.onclick = () => updateAddress(index);
+
+    // Show the modal
+    new bootstrap.Modal(document.getElementById('addAddressModal')).show();
+}
+
+// Update address function
+function updateAddress(index) {
+    if (!validateForm()) {
+        return;
+    }
+
+    const formData = {
+        addressIndex: index,
+        name: document.getElementById('name').value,
+        houseName: document.getElementById('houseName').value,
+        street: document.getElementById('street').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        pincode: document.getElementById('pincode').value,
+        phone: document.getElementById('phone').value
+    };
+
+    fetch('/edit-address/' + index, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                try {
+                    const data = JSON.parse(text);
+                    throw new Error(data.message || 'Failed to update address');
+                } catch (e) {
+                    throw new Error('Failed to update address. Please try again.');
+                }
+            });
         }
-
-        // Check pattern validation
-        if (input.hasAttribute('pattern') && input.value.trim()) {
-            const pattern = new RegExp(input.getAttribute('pattern'));
-            if (!pattern.test(input.value.trim())) {
-                input.classList.add('is-invalid');
-                isValid = false;
-            }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: data.message || 'Address updated successfully'
+            }).then(() => {
+                $('#addAddressModal').modal('hide');
+                location.reload();
+            });
+        } else {
+            throw new Error(data.message || 'Failed to update address');
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to update address. Please try again.'
+        });
+    });
+}
 
-        // Check minlength
-        if (input.hasAttribute('minlength') && input.value.trim()) {
-            const minLength = parseInt(input.getAttribute('minlength'));
-            if (input.value.trim().length < minLength) {
-                input.classList.add('is-invalid');
-                isValid = false;
-            }
-        }
-
-        // Check maxlength
-        if (input.hasAttribute('maxlength') && input.value.trim()) {
-            const maxLength = parseInt(input.getAttribute('maxlength'));
-            if (input.value.trim().length > maxLength) {
-                input.classList.add('is-invalid');
-                isValid = false;
-            }
+// Delete address function
+function deleteAddress(index) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/delete-address/${index}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire(
+                        'Deleted!',
+                        'Your address has been deleted.',
+                        'success'
+                    ).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Failed to delete address'
+                });
+            });
         }
     });
+}
 
-    return isValid;
+// Form validation function
+function validateForm() {
+    const name = document.getElementById('name').value;
+    const houseName = document.getElementById('houseName').value;
+    const street = document.getElementById('street').value;
+    const city = document.getElementById('city').value;
+    const state = document.getElementById('state').value;
+    const pincode = document.getElementById('pincode').value;
+    const phone = document.getElementById('phone').value;
+
+    // Check required fields
+    if (!name || !houseName || !street || !city || !state || !pincode || !phone) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'All fields are required'
+        });
+        return false;
+    }
+
+    // Validate phone number (10 digits)
+    if (!/^\d{10}$/.test(phone)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Phone number must be 10 digits'
+        });
+        return false;
+    }
+
+    // Validate pincode (6 digits)
+    if (!/^\d{6}$/.test(pincode)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'PIN code must be 6 digits'
+        });
+        return false;
+    }
+
+    return true;
 }
 
 // Remove invalid class when input changes
@@ -1361,7 +1495,111 @@ document.getElementById('addAddressModal').addEventListener('hidden.bs.modal', f
         input.classList.remove('is-invalid');
     });
 });
+
+// Validation function for profile update
+function validateProfileForm() {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    
+    // Name validation (3-50 characters, only letters and spaces)
+    if (!name || !/^[a-zA-Z\s]{3,50}$/.test(name)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Name',
+            text: 'Name should be 3-50 characters long and contain only letters and spaces'
+        });
+        return false;
+    }
+
+    // Phone validation (10 digits, starting with 6-9)
+    if (!phone || !/^[6-9]\d{9}$/.test(phone)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Phone Number',
+            text: 'Please enter a valid 10-digit mobile number starting with 6-9'
+        });
+        return false;
+    }
+
+    return true;
+}
+
+document.getElementById('updateProfileForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateProfileForm()) {
+        return;
+    }
+    
+    const formData = {
+        name: document.getElementById('name').value.trim(),
+        phone: document.getElementById('phone').value.trim()
+    };
+
+    fetch('/update-profile', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: data.message
+            }).then(() => {
+                location.reload();
+            });
+        } else {
+            throw new Error(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Failed to update profile'
+        });
+    });
+});
+
+// Add input event listeners for real-time validation
+document.getElementById('name').addEventListener('input', function(e) {
+    const input = e.target;
+    const namePattern = /^[a-zA-Z\s]{0,50}$/;
+    
+    // Remove any characters that don't match the pattern
+    input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
+    
+    // Validate length
+    if (input.value.length > 50) {
+        input.value = input.value.substring(0, 50);
+    }
+});
+
+document.getElementById('phone').addEventListener('input', function(e) {
+    const input = e.target;
+    
+    // Remove any non-digit characters
+    input.value = input.value.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    if (input.value.length > 10) {
+        input.value = input.value.substring(0, 10);
+    }
+    
+    // Ensure first digit is 6-9
+    if (input.value.length === 1 && !/^[6-9]$/.test(input.value)) {
+        input.value = '';
+    }
+});
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
 <%- include("../../views/partials/user/footer") %>

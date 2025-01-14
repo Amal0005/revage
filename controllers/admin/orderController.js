@@ -1,4 +1,4 @@
-const Order = require('../../models/orderModel');
+const Order = require('../../models/orderSchema');
 
 const orderController = {
     // Get all orders
