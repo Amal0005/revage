@@ -1150,44 +1150,28 @@ a:hover {
             <div class="modal-body">
                 <form id="addAddressForm" novalidate>
                     <div class="mb-3">
-                        <label for="name" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="name" 
-                            pattern="^[a-zA-Z ]{3,50}$"
-                            minlength="3"
-                            maxlength="50"
-                            required>
-                        <div class="invalid-feedback">Please enter a valid name (3-50 characters, letters only)</div>
+                        <label for="address_name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="address_name" name="name" required>
+                        <div class="invalid-feedback">Please enter a valid name</div>
                     </div>
                     <div class="mb-3">
-                        <label for="houseName" class="form-label">House Name/Number</label>
-                        <input type="text" class="form-control" id="houseName" 
-                            pattern="^[a-zA-Z0-9/,. -]{3,50}$"
-                            minlength="3"
-                            maxlength="50"
-                            required>
-                        <div class="invalid-feedback">Please enter a valid house name/number (3-50 characters)</div>
+                        <label for="address_houseName" class="form-label">House Name/Number</label>
+                        <input type="text" class="form-control" id="address_houseName" name="houseName" required>
+                        <div class="invalid-feedback">Please enter house name/number</div>
                     </div>
                     <div class="mb-3">
-                        <label for="street" class="form-label">Street</label>
-                        <input type="text" class="form-control" id="street" 
-                            pattern="^[a-zA-Z0-9/,. -]{3,100}$"
-                            minlength="3"
-                            maxlength="100"
-                            required>
-                        <div class="invalid-feedback">Please enter a valid street name (3-100 characters)</div>
+                        <label for="address_street" class="form-label">Street</label>
+                        <input type="text" class="form-control" id="address_street" name="street" required>
+                        <div class="invalid-feedback">Please enter street name</div>
                     </div>
                     <div class="mb-3">
-                        <label for="city" class="form-label">City</label>
-                        <input type="text" class="form-control" id="city" 
-                            pattern="^[a-zA-Z ]{3,50}$"
-                            minlength="3"
-                            maxlength="50"
-                            required>
-                        <div class="invalid-feedback">Please enter a valid city name (3-50 characters, letters only)</div>
+                        <label for="address_city" class="form-label">City</label>
+                        <input type="text" class="form-control" id="address_city" name="city" required>
+                        <div class="invalid-feedback">Please enter city name</div>
                     </div>
                     <div class="mb-3">
-                        <label for="state" class="form-label">State</label>
-                        <select class="form-select" id="state" required>
+                        <label for="address_state" class="form-label">State</label>
+                        <select class="form-control" id="address_state" name="state" required>
                             <option value="">Select State</option>
                             <option value="Andhra Pradesh">Andhra Pradesh</option>
                             <option value="Arunachal Pradesh">Arunachal Pradesh</option>
@@ -1221,24 +1205,22 @@ a:hover {
                         <div class="invalid-feedback">Please select a state</div>
                     </div>
                     <div class="mb-3">
-                        <label for="pincode" class="form-label">PIN Code</label>
-                        <input type="text" class="form-control" id="pincode" 
+                        <label for="address_pincode" class="form-label">PIN Code</label>
+                        <input type="text" class="form-control" id="address_pincode" name="pincode" 
                             pattern="^[1-9][0-9]{5}$"
                             maxlength="6"
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                             required>
-                        <div class="invalid-feedback">Please enter a valid 6-digit PIN code (should start with 1-9)</div>
+                        <div class="invalid-feedback">Please enter a valid 6-digit PIN code</div>
                     </div>
                     <div class="mb-3">
-                        <label for="phone" class="form-label">Phone Number</label>
+                        <label for="address_phone" class="form-label">Phone Number</label>
                         <div class="input-group">
                             <span class="input-group-text">+91</span>
-                            <input type="tel" class="form-control" id="phone" 
+                            <input type="tel" class="form-control" id="address_phone" name="phone" 
                                 pattern="^[6-9][0-9]{9}$"
                                 maxlength="10"
-                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                                 required>
-                            <div class="invalid-feedback">Please enter a valid 10-digit mobile number (should start with 6-9)</div>
+                            <div class="invalid-feedback">Please enter a valid 10-digit mobile number</div>
                         </div>
                     </div>
                 </form>
@@ -1253,21 +1235,26 @@ a:hover {
 
 <script>
 
-
 function submitAddressForm() {
-    if (!validateForm()) {
+    if (!validateAddressForm()) {
         return;
     }
 
     const formData = {
-        name: document.getElementById('name').value,
-        houseName: document.getElementById('houseName').value,
-        street: document.getElementById('street').value,
-        city: document.getElementById('city').value,
-        state: document.getElementById('state').value,
-        pincode: document.getElementById('pincode').value,
-        phone: document.getElementById('phone').value
+        name: document.getElementById('address_name').value.trim(),
+        houseName: document.getElementById('address_houseName').value.trim(),
+        street: document.getElementById('address_street').value.trim(),
+        city: document.getElementById('address_city').value.trim(),
+        state: document.getElementById('address_state').value,
+        pincode: document.getElementById('address_pincode').value.trim(),
+        phone: document.getElementById('address_phone').value.trim()
     };
+
+    // Add loading state
+    const submitButton = document.querySelector('#addAddressModal .btn-dark');
+    const originalText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Adding...';
 
     fetch('/add-address', {
         method: 'POST',
@@ -1276,20 +1263,26 @@ function submitAddressForm() {
         },
         body: JSON.stringify(formData)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Failed to add address');
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             Swal.fire({
                 icon: 'success',
                 title: 'Success',
-                text: data.message
+                text: data.message || 'Address added successfully'
             }).then(() => {
-                // Close modal and refresh page to show new address
                 $('#addAddressModal').modal('hide');
                 location.reload();
             });
         } else {
-            throw new Error(data.message);
+            throw new Error(data.message || 'Failed to add address');
         }
     })
     .catch(error => {
@@ -1297,10 +1290,33 @@ function submitAddressForm() {
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: error.message || 'Failed to add address'
+            text: error.message || 'Failed to add address. Please try again.'
         });
+    })
+    .finally(() => {
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
     });
 }
+
+// Reset form and validation state when modal is opened
+document.getElementById('addAddressModal').addEventListener('show.bs.modal', function () {
+    const form = document.getElementById('addAddressForm');
+    form.reset();
+    
+    // Reset modal title and button
+    document.getElementById('addAddressModalLabel').textContent = 'Add New Address';
+    const submitButton = document.querySelector('#addAddressModal .btn-dark');
+    submitButton.textContent = 'Add Address';
+    submitButton.onclick = submitAddressForm;
+});
+
+// Clear form and validation state when modal is hidden
+document.getElementById('addAddressModal').addEventListener('hidden.bs.modal', function () {
+    const form = document.getElementById('addAddressForm');
+    form.reset();
+});
 
 // Edit address function
 function editAddress(index) {
@@ -1316,13 +1332,13 @@ function editAddress(index) {
     }
 
     // Populate the modal with existing address data
-    document.getElementById('name').value = addressDiv.querySelector('[data-name]').textContent.trim();
-    document.getElementById('houseName').value = addressDiv.querySelector('[data-house]').textContent.trim();
-    document.getElementById('street').value = addressDiv.querySelector('[data-street]').textContent.trim();
-    document.getElementById('city').value = addressDiv.querySelector('[data-city]').textContent.trim();
-    document.getElementById('state').value = addressDiv.querySelector('[data-state]').textContent.trim();
-    document.getElementById('pincode').value = addressDiv.querySelector('[data-pincode]').textContent.trim();
-    document.getElementById('phone').value = addressDiv.querySelector('[data-phone]').textContent.trim();
+    document.getElementById('address_name').value = addressDiv.querySelector('[data-name]').textContent.trim();
+    document.getElementById('address_houseName').value = addressDiv.querySelector('[data-house]').textContent.trim();
+    document.getElementById('address_street').value = addressDiv.querySelector('[data-street]').textContent.trim();
+    document.getElementById('address_city').value = addressDiv.querySelector('[data-city]').textContent.trim();
+    document.getElementById('address_state').value = addressDiv.querySelector('[data-state]').textContent.trim();
+    document.getElementById('address_pincode').value = addressDiv.querySelector('[data-pincode]').textContent.trim();
+    document.getElementById('address_phone').value = addressDiv.querySelector('[data-phone]').textContent.trim();
 
     // Update modal title and button
     document.getElementById('addAddressModalLabel').textContent = 'Edit Address';
@@ -1336,22 +1352,28 @@ function editAddress(index) {
 
 // Update address function
 function updateAddress(index) {
-    if (!validateForm()) {
+    if (!validateAddressForm()) {
         return;
     }
 
     const formData = {
         addressIndex: index,
-        name: document.getElementById('name').value,
-        houseName: document.getElementById('houseName').value,
-        street: document.getElementById('street').value,
-        city: document.getElementById('city').value,
-        state: document.getElementById('state').value,
-        pincode: document.getElementById('pincode').value,
-        phone: document.getElementById('phone').value
+        name: document.getElementById('address_name').value.trim(),
+        houseName: document.getElementById('address_houseName').value.trim(),
+        street: document.getElementById('address_street').value.trim(),
+        city: document.getElementById('address_city').value.trim(),
+        state: document.getElementById('address_state').value,
+        pincode: document.getElementById('address_pincode').value.trim(),
+        phone: document.getElementById('address_phone').value.trim()
     };
 
-    fetch('/edit-address/' + index, {
+    // Add loading state
+    const submitButton = document.querySelector('#addAddressModal .btn-dark');
+    const originalText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Updating...';
+
+    fetch(`/edit-address/${index}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -1361,13 +1383,8 @@ function updateAddress(index) {
     })
     .then(response => {
         if (!response.ok) {
-            return response.text().then(text => {
-                try {
-                    const data = JSON.parse(text);
-                    throw new Error(data.message || 'Failed to update address');
-                } catch (e) {
-                    throw new Error('Failed to update address. Please try again.');
-                }
+            return response.json().then(data => {
+                throw new Error(data.message || 'Failed to update address');
             });
         }
         return response.json();
@@ -1393,6 +1410,11 @@ function updateAddress(index) {
             title: 'Error',
             text: error.message || 'Failed to update address. Please try again.'
         });
+    })
+    .finally(() => {
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
     });
 }
 
@@ -1480,19 +1502,53 @@ function validateForm() {
     return true;
 }
 
+// Form validation function for address
+function validateAddressForm() {
+    const name = document.getElementById('address_name').value.trim();
+    const houseName = document.getElementById('address_houseName').value.trim();
+    const street = document.getElementById('address_street').value.trim();
+    const city = document.getElementById('address_city').value.trim();
+    const state = document.getElementById('address_state').value;
+    const pincode = document.getElementById('address_pincode').value.trim();
+    const phone = document.getElementById('address_phone').value.trim();
+
+    // Check required fields
+    if (!name || !houseName || !street || !city || !state || !pincode || !phone) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'All fields are required'
+        });
+        return false;
+    }
+
+    // Validate phone number (10 digits)
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Phone number must be 10 digits and start with 6-9'
+        });
+        return false;
+    }
+
+    // Validate pincode (6 digits)
+    if (!/^\d{6}$/.test(pincode)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'PIN code must be 6 digits'
+        });
+        return false;
+    }
+
+    return true;
+}
+
 // Remove invalid class when input changes
 document.querySelectorAll('#addAddressForm input, #addAddressForm select').forEach(input => {
     input.addEventListener('input', function() {
         this.classList.remove('is-invalid');
-    });
-});
-
-// Clear form when modal is hidden
-document.getElementById('addAddressModal').addEventListener('hidden.bs.modal', function () {
-    const form = document.getElementById('addAddressForm');
-    form.reset();
-    form.querySelectorAll('.is-invalid').forEach(input => {
-        input.classList.remove('is-invalid');
     });
 });
 

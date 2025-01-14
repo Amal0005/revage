@@ -320,7 +320,7 @@ const getResetPasswordPage = async (req, res) => {
 const addAddress = async (req, res) => {
     try {
         console.log('Session:', req.session);
-        const userId = req.session.user; // Changed from user_id to userId to match session
+        const userId = req.session.user;
         const addressData = req.body;
 
         console.log('Received address data:', addressData);
@@ -339,6 +339,22 @@ const addAddress = async (req, res) => {
                     message: `${field.charAt(0).toUpperCase() + field.slice(1)} is required` 
                 });
             }
+        }
+
+        // Validate phone number (10 digits, starting with 6-9)
+        if (!/^[6-9]\d{9}$/.test(addressData.phone)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Phone number must be 10 digits and start with 6-9" 
+            });
+        }
+
+        // Validate pincode (6 digits)
+        if (!/^\d{6}$/.test(addressData.pincode)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "PIN code must be 6 digits" 
+            });
         }
 
         const user = await User.findById(userId);

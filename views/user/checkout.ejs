@@ -255,32 +255,79 @@
     <div class="modal-content">
         <span class="close-modal" onclick="hideAddAddressModal()">&times;</span>
         <h2>Add New Address</h2>
-        <form id="add-address-form">
+        <form id="add-address-form" novalidate>
             <div class="form-group">
                 <label for="fullName">Full Name</label>
-                <input type="text" id="fullName" name="fullName" required>
+                <input type="text" id="fullName" name="name" pattern="^[a-zA-Z\s]{3,50}$" required>
+                <div class="invalid-feedback">Please enter a valid name (3-50 characters)</div>
             </div>
             <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <input type="tel" id="phone" name="phone" required>
+                <label for="houseName">House Name/Number</label>
+                <input type="text" id="houseName" name="houseName" required>
+                <div class="invalid-feedback">Please enter house name/number</div>
             </div>
             <div class="form-group">
-                <label for="address">Address</label>
-                <input type="text" id="address" name="address" required>
+                <label for="street">Street</label>
+                <input type="text" id="street" name="street" required>
+                <div class="invalid-feedback">Please enter street name</div>
             </div>
             <div class="form-group">
                 <label for="city">City</label>
                 <input type="text" id="city" name="city" required>
+                <div class="invalid-feedback">Please enter city name</div>
             </div>
             <div class="form-group">
-                <label for="pincode">Pincode</label>
-                <input type="text" id="pincode" name="pincode" required>
+                <label for="state">State</label>
+                <select class="form-control" id="state" name="state" required>
+                    <option value="">Select State</option>
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                    <option value="Assam">Assam</option>
+                    <option value="Bihar">Bihar</option>
+                    <option value="Chhattisgarh">Chhattisgarh</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Haryana">Haryana</option>
+                    <option value="Himachal Pradesh">Himachal Pradesh</option>
+                    <option value="Jharkhand">Jharkhand</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Manipur">Manipur</option>
+                    <option value="Meghalaya">Meghalaya</option>
+                    <option value="Mizoram">Mizoram</option>
+                    <option value="Nagaland">Nagaland</option>
+                    <option value="Odisha">Odisha</option>
+                    <option value="Punjab">Punjab</option>
+                    <option value="Rajasthan">Rajasthan</option>
+                    <option value="Sikkim">Sikkim</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Tripura">Tripura</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    <option value="Uttarakhand">Uttarakhand</option>
+                    <option value="West Bengal">West Bengal</option>
+                </select>
+                <div class="invalid-feedback">Please select a state</div>
+            </div>
+            <div class="form-group">
+                <label for="pincode">PIN Code</label>
+                <input type="text" id="pincode" name="pincode" pattern="^[1-9][0-9]{5}$" maxlength="6" required>
+                <div class="invalid-feedback">Please enter a valid 6-digit PIN code</div>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <div class="input-group">
+                    <span class="input-group-text">+91</span>
+                    <input type="tel" id="phone" name="phone" pattern="^[6-9][0-9]{9}$" maxlength="10" required>
+                </div>
+                <div class="invalid-feedback">Please enter a valid 10-digit mobile number</div>
             </div>
             <button type="submit" class="checkout-btn">Save Address</button>
         </form>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 let selectedAddressIndex = null;
@@ -308,6 +355,8 @@ function showAddAddressModal() {
 
 function hideAddAddressModal() {
     document.getElementById('add-address-modal').style.display = 'none';
+    // Reset form
+    document.getElementById('add-address-form').reset();
 }
 
 // Close modal when clicking outside
@@ -318,62 +367,147 @@ window.onclick = function(event) {
     }
 }
 
+function validateAddressForm() {
+    const form = document.getElementById('add-address-form');
+    const name = document.getElementById('fullName').value.trim();
+    const houseName = document.getElementById('houseName').value.trim();
+    const street = document.getElementById('street').value.trim();
+    const city = document.getElementById('city').value.trim();
+    const state = document.getElementById('state').value;
+    const pincode = document.getElementById('pincode').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+
+    // Check required fields
+    if (!name || !houseName || !street || !city || !state || !pincode || !phone) {
+        alert('All fields are required');
+        return false;
+    }
+
+    // Validate name (3-50 characters, only letters and spaces)
+    if (!/^[a-zA-Z\s]{3,50}$/.test(name)) {
+        alert('Name should be 3-50 characters long and contain only letters and spaces');
+        return false;
+    }
+
+    // Validate phone number (10 digits, starting with 6-9)
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+        alert('Please enter a valid 10-digit mobile number starting with 6-9');
+        return false;
+    }
+
+    // Validate pincode (6 digits)
+    if (!/^\d{6}$/.test(pincode)) {
+        alert('Please enter a valid 6-digit PIN code');
+        return false;
+    }
+
+    return true;
+}
+
 document.getElementById('add-address-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    if (!validateAddressForm()) {
+        return;
+    }
+
     const formData = {
-        fullName: document.getElementById('fullName').value,
-        phone: document.getElementById('phone').value,
-        address: document.getElementById('address').value,
-        city: document.getElementById('city').value,
-        pincode: document.getElementById('pincode').value
+        name: document.getElementById('fullName').value.trim(),
+        houseName: document.getElementById('houseName').value.trim(),
+        street: document.getElementById('street').value.trim(),
+        city: document.getElementById('city').value.trim(),
+        state: document.getElementById('state').value,
+        pincode: document.getElementById('pincode').value.trim(),
+        phone: document.getElementById('phone').value.trim()
     };
 
+    // Add loading state
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Saving...';
+
     try {
-        const response = await fetch('/profile/add-address', {
+        const response = await fetch('/add-address', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(formData),
+            credentials: 'include' // Add this to include cookies/session
         });
+
+        if (!response.ok) {
+            const data = await response.json();
+            if (response.status === 401) {
+                alert('Please login to add address');
+                window.location.href = '/login';
+                return;
+            }
+            throw new Error(data.message || 'Failed to add address');
+        }
 
         const data = await response.json();
 
         if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: 'Address added successfully',
-                showConfirmButton: false,
-                timer: 1500
-            }).then(() => {
-                window.location.reload();
-            });
+            alert(data.message || 'Address added successfully');
+            hideAddAddressModal();
+            window.location.reload();
         } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: data.message || 'Failed to add address'
-            });
+            throw new Error(data.message || 'Failed to add address');
         }
     } catch (error) {
         console.error('Error adding address:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Something went wrong'
-        });
+        alert(error.message || 'Failed to add address. Please try again.');
+    } finally {
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    }
+});
+
+// Add input event listeners for real-time validation
+document.getElementById('phone').addEventListener('input', function(e) {
+    const input = e.target;
+    // Remove any non-digit characters
+    input.value = input.value.replace(/\D/g, '');
+    
+    // Ensure first digit is 6-9
+    if (input.value.length === 1 && !/^[6-9]$/.test(input.value)) {
+        input.value = '';
+    }
+    
+    // Limit to 10 digits
+    if (input.value.length > 10) {
+        input.value = input.value.slice(0, 10);
+    }
+});
+
+document.getElementById('pincode').addEventListener('input', function(e) {
+    const input = e.target;
+    // Remove any non-digit characters
+    input.value = input.value.replace(/\D/g, '');
+    
+    // Limit to 6 digits
+    if (input.value.length > 6) {
+        input.value = input.value.slice(0, 6);
+    }
+});
+
+document.getElementById('fullName').addEventListener('input', function(e) {
+    const input = e.target;
+    // Remove any non-letter characters except spaces
+    input.value = input.value.replace(/[^a-zA-Z\s]/g, '');
+    
+    // Limit to 50 characters
+    if (input.value.length > 50) {
+        input.value = input.value.slice(0, 50);
     }
 });
 
 async function processCheckout() {
     if (selectedAddressIndex === null) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Please Select Address',
-            text: 'Please select a delivery address to continue'
-        });
+        alert('Please Select Address');
         return;
     }
 
@@ -391,32 +525,14 @@ async function processCheckout() {
         const data = await response.json();
 
         if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Order Placed Successfully!',
-                text: 'Thank you for your purchase',
-                confirmButtonText: 'View Orders'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '/profile#orders';
-                } else {
-                    window.location.href = '/profile#orders';
-                }
-            });
+            alert('Order Placed Successfully!');
+            window.location.href = '/profile#orders';
         } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Checkout Failed',
-                text: data.message || 'Failed to process checkout'
-            });
+            alert('Checkout Failed');
         }
     } catch (error) {
         console.error('Error processing checkout:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Something went wrong during checkout'
-        });
+        alert('Oops... Something went wrong during checkout');
     }
 }
 </script>
