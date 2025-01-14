@@ -1,4 +1,6 @@
 const User = require("../../models/userSchema");
+const Order = require("../../models/orderModel");
+const Product = require("../../models/productSchema");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
@@ -41,8 +43,42 @@ const login = async (req, res) => {
 
 const loadDashboard = async (req, res) => {
   try {
-    res.render("admin/dashboard");
+    // Get total revenue
+    const orders = await Order.find();
+    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+    // Get total orders count
+    const totalOrders = await Order.countDocuments();
+
+    // Get total products count
+    const totalProducts = await Product.countDocuments();
+
+    // Get monthly earnings (current month)
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const monthlyOrders = await Order.find({
+      orderDate: { $gte: firstDayOfMonth }
+    });
+    const monthlyEarnings = monthlyOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+    // Get recent orders
+    const recentOrders = await Order.find()
+      .populate('user', 'name')
+      .populate('items.product', 'productName')
+      .sort({ orderDate: -1 })
+      .limit(5);
+
+    const dashboardData = {
+      totalRevenue,
+      totalOrders,
+      totalProducts,
+      monthlyEarnings,
+      recentOrders
+    };
+
+    res.render("admin/dashboard", dashboardData);
   } catch (error) {
+    console.error("Dashboard error:", error);
     res.redirect("/pageerror");
   }
 };

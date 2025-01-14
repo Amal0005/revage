@@ -97,7 +97,7 @@ router.get("/reset-password", profileController.getResetPasswordPage);
 
 // Address Management Routes
 router.post('/add-address', userAuth, profileController.addAddress);
-router.post('/update-address', userAuth, profileController.updateAddress);
-router.post('/delete-address', userAuth, profileController.deleteAddress);
+router.put('/edit-address/:index', userAuth, profileController.updateAddress);
+router.delete('/delete-address/:index', userAuth, profileController.deleteAddress);
 
 module.exports=router;

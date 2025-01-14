@@ -1,3 +1,5 @@
+<%- include("../../views/partials/admin/header.ejs") %>
+
 <style>
     /* Base Styles */
 body {
@@ -6,73 +8,6 @@ body {
     background-color: #f8f9fa;
 }
 
-.navbar-aside {
-    width: 260px;
-    background: #ffffff;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: width 0.3s ease-in-out;
-}
-
-.navbar-aside:hover {
-    width: 280px;
-}
-
-.brand-wrap {
-    text-align: center;
-    padding: 20px;
-    display: block;
-    font-size: 1.5rem;
-    letter-spacing: 2px;
-    color: #2d79c0;
-}
-
-.menu-aside {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.menu-item {
-    position: relative;
-    overflow: hidden;
-}
-
-.menu-link {
-    display: flex;
-    align-items: center;
-    padding: 15px 20px;
-    text-decoration: none;
-    color: #333;
-    font-weight: bold;
-    transition: all 0.4s ease;
-}
-
-.menu-link i {
-    margin-right: 15px;
-    font-size: 1.2rem;
-    color: #2d79c0;
-    transition: transform 0.4s ease;
-}
-
-.menu-link:hover i {
-    transform: rotate(360deg);
-    color: #28a745;
-}
-
-.menu-link:hover {
-    background: linear-gradient(to right, #000000, #ffffff);
-    color: #ffffff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.menu-link:hover span {
-    position: relative;
-    animation: bounce 0.6s ease infinite alternate;
-}
 
 @keyframes bounce {
     from {
@@ -133,57 +68,7 @@ body {
 </head>
 
 <body>
-    <div class="screen-overlay"></div>
-    <aside class="navbar-aside" id="offcanvas_aside">
-        <div class="aside-top">
-            <a href="/" class="brand-wrap " style="font-size: 25px;text-decoration: none; color: rgb(45, 121, 192) ; font-weight: bold;">
-                REVAGE
-            </a>
-            <div>
-                <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i>
-                </button>
-            </div>
-        </div>
-        <nav>
-            <ul class="menu-aside">
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/dashboard"> <i class="fa-solid fa-house"></i></i>
-                        <span class="text">Dashboard</span>
-                    </a>
-                </li>
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/users"> <i class="fa-solid fa-list"></i></i>
-                        <span class="text">customers</span>
-                    </a>
-                </li>
-
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/category"> <i class="fa-solid fa-list"></i></i>
-                        <span class="text">category</span>
-                    </a>
-                </li>
-                <li class="menu-item active">
-                    <a class="menu-link" href="/admin/product-add"><i class="fa-brands fa-product-hunt"></i>
-                        <span class="text">Add Products</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/products"><i class="fa-brands fa-product-hunt"></i></i>
-                        <span class="text">Products</span>
-                    </a>
-                </li>
-
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/orders"><i class="fa-brands fa-product-hunt"></i></i>
-                        <span class="text">orders</span>
-                    </a>
-                </li>
-
-            </ul>
-            <br>
-            <br>
-        </nav>
-    </aside>
+    
 
 
     <main class="main-wrap">
@@ -196,16 +81,7 @@ body {
                 <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i
                         class="material-icons md-apps"></i> </button>
                 <ul class="nav">
-                    <!-- <li class="dropdown nav-item">
-                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount"
-                            aria-expanded="false"> <img class="img-xs rounded-circle"
-                                src='https://wallpapers.com/images/hd/viking-archery-fy7xjdref2rezzoj.jpg'
-                                alt="User"></a>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
-                            <a class="dropdown-item text-danger" href="/admin/logout"><i
-                                    class="material-icons md-exit_to_app"></i>Logout</a>
-                        </div>
-                    </li> -->
+                 
                 </ul>
             </div>
         </header>

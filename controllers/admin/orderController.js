@@ -22,8 +22,7 @@ const orderController = {
         }
     },
 
-    // Update order status
-    updateOrderStatus: async (req, res) => {
+     updateOrderStatus: async (req, res) => {
         try {
             const { orderId, status } = req.body;
             await Order.findByIdAndUpdate(orderId, { status });
@@ -34,7 +33,6 @@ const orderController = {
         }
     },
 
-    // Get order details
     getOrderDetails: async (req, res) => {
         try {
             const { orderId } = req.params;

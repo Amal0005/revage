@@ -1,6 +1,66 @@
 <%- include("../../views/partials/admin/header") %>
 
 <style>
+    .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            background: #ffffff;
+            border-right: 1px solid #e5e5e5;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar:hover {
+            width: 280px;
+        }
+
+        .brand {
+            padding: 2rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: 200;
+            letter-spacing: 0.2em;
+            color: #000000;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            padding: 1rem;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin: 0.5rem 0;
+        }
+      
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            color: #000000;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        .nav-link i {
+            width: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .nav-link.active {
+            background-color: #000000;
+            color: #ffffff;
+        }
     .orders-container {
         background-color: #ffffff;
         padding: 2rem;
@@ -89,6 +149,7 @@
         border-bottom: 1px solid #e5e5e5;
     }
 </style>
+
 
 <div class="container-fluid">
     <div class="row">

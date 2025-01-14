@@ -20,62 +20,120 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <link href="/evara-backend/assets/css/main.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="/evara-backend/assets/imgs">
+    <!-- <link rel="stylesheet" href="/evara-backend/assets/imgs"> -->
 
 </head>
+<style>
+       .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            background: #ffffff;
+            border-right: 1px solid #e5e5e5;
+            transition: width 0.3s ease;
+        }
 
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: 200;
+            letter-spacing: 0.2em;
+            color: #000000;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            padding: 1rem;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin: 0.5rem 0;
+        }
+      
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            color: #000000;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-link:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        .nav-link i {
+            width: 1.5rem;
+            margin-right: 1rem;
+            font-size: 1rem;
+        }
+
+        .nav-link.active {
+            background-color: #000000;
+            color: #ffffff;
+        }
+</style>
 <body>
-    <div class="screen-overlay"></div>
-    <aside class="navbar-aside" id="offcanvas_aside">
-        <div class="aside-top">
-            <a href="/" class="brand-wrap " style="font-size: 25px;text-decoration: none; color: rgb(45, 121, 192) ; font-weight: bold;">
-                REVAGE
-            </a>
-            <div>
-                <button class="btn btn-icon btn-aside-minimize"> <i class="text-muted material-icons md-menu_open"></i>
-                </button>
-            </div>
-        </div>
-        <nav>
-            <ul class="menu-aside">
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/dashboard"> <i class="fa-solid fa-house"></i></i>
-                        <span class="text">Dashboard</span>
-                    </a>
-                </li>
-                <li class="menu-item ">
-                    <a class="menu-link" href="/admin/users"> <i class="fa-solid fa-list"></i></i>
-                        <span class="text">customers</span>
-                    </a>
-                </li>
-
-                <li class="menu-item active">
-                    <a class="menu-link" href="/admin/category"> <i class="fa-solid fa-list"></i></i>
-                        <span class="text">category</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/product-add"><i class="fa-brands fa-product-hunt"></i>
-                        <span class="text">Add Products</span>
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/products"><i class="fa-brands fa-product-hunt"></i></i>
-                        <span class="text">Products</span>
-                    </a>
-                </li>
-
-                <li class="menu-item">
-                    <a class="menu-link" href="/admin/orders"><i class="fa-brands fa-product-hunt"></i></i>
-                        <span class="text">orders</span>
-                    </a>
-                </li>
-
-            </ul>
-            <br>
-            <br>
-        </nav>
-    </aside>
+    <!-- Sidebar -->
+ <aside class="sidebar">
+    <div class="brand">
+        <a href="/" class="brand-title">REVAGE</a>
+    </div>
+    <nav class="nav-menu">
+        <ul>
+            <li class="nav-item">
+                <a href="/admin/dashboard" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/users" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/category" class="nav-link">
+                    <i class="fas fa-list"></i>
+                    <span>Category</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="/admin/products" class="nav-link active">
+                    <i class="fas fa-box"></i>
+                    <span>Products</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/product-add" class="nav-link">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Add Products</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/orders" class="nav-link"></i>
+                    <i class="fas fa-shipping-fast"></i>
+                    <span class="text">orders</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</aside>
 
 
     <main class="main-wrap">
@@ -88,16 +146,7 @@
                 <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i
                         class="material-icons md-apps"></i> </button>
                 <ul class="nav">
-                    <!-- <li class="dropdown nav-item">
-                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount"
-                            aria-expanded="false"> <img class="img-xs rounded-circle"
-                                src='https://wallpapers.com/images/hd/viking-archery-fy7xjdref2rezzoj.jpg'
-                                alt="User"></a>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
-                            <a class="dropdown-item text-danger" href="/admin/logout"><i
-                                    class="material-icons md-exit_to_app"></i>Logout</a>
-                        </div>
-                    </li> -->
+               
                 </ul>
             </div>
         </header>

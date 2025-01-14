@@ -320,8 +320,16 @@ const getResetPasswordPage = async (req, res) => {
 
 const addAddress = async (req, res) => {
     try {
-        const userId = req.session.user;
+        console.log('Session:', req.session);
+        const userId = req.session.user; // Changed from user_id to userId to match session
         const addressData = req.body;
+
+        console.log('Received address data:', addressData);
+        console.log('User ID:', userId);
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Please login to add address" });
+        }
 
         // Validate required fields
         const requiredFields = ['name', 'houseName', 'street', 'city', 'state', 'pincode', 'phone'];
@@ -334,29 +342,16 @@ const addAddress = async (req, res) => {
             }
         }
 
-        // Validate phone number (10 digits)
-        if (!/^\d{10}$/.test(addressData.phone)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Phone number must be 10 digits" 
-            });
-        }
-
-        // Validate pincode (6 digits)
-        if (!/^\d{6}$/.test(addressData.pincode)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "PIN code must be 6 digits" 
-            });
-        }
-
         const user = await User.findById(userId);
         if (!user) {
+            console.log('User not found for ID:', userId);
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
+        console.log('Found user:', user.email);
+
         // Initialize addresses array if it doesn't exist
-        if (!user.addresses) {
+        if (!Array.isArray(user.addresses)) {
             user.addresses = [];
         }
 
@@ -364,7 +359,8 @@ const addAddress = async (req, res) => {
         user.addresses.push(addressData);
         await user.save();
 
-        res.json({ success: true, message: "Address added successfully" });
+        console.log('Address added successfully');
+        res.status(200).json({ success: true, message: "Address added successfully" });
     } catch (error) {
         console.error("Error adding address:", error);
         res.status(500).json({ success: false, message: "Failed to add address" });
