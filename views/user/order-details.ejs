@@ -1,4 +1,5 @@
 <%- include("../../views/partials/user/header") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
 .order-details-container {
@@ -152,87 +153,184 @@
             </div>
 
             <div class="action-buttons">
-                <% if (order.status === 'Pending' || order.status === 'Processing') { %>
-                    <button class="btn btn-danger w-100" onclick="cancelOrder('<%= order._id %>')">Cancel Order</button>
+                <% if (order.status !== 'Delivered' && order.status !== 'Cancelled') { %>
+                    <button class="btn btn-danger w-100" onclick="cancelOrder('<%= order._id.toString() %>')">Cancel Order</button>
                 <% } else if (order.status === 'Delivered') { %>
-                    <button class="btn btn-warning w-100" onclick="returnOrder('<%= order._id %>')">Return Order</button>
+                    <button class="btn btn-warning w-100" onclick="returnOrder('<%= order._id.toString() %>')">Return Order</button>
                 <% } %>
-                <button class="btn btn-dark w-100" onclick="downloadInvoice('<%= order._id %>')">Download Invoice</button>
+                <button class="btn btn-dark w-100" onclick="downloadInvoice('<%= order._id.toString() %>')">Download Invoice</button>
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 function navigateBack(event) {
     event.preventDefault();
     window.location.href = '/profile#orders';
-    // Force a page reload to ensure the orders tab is shown
-    window.location.reload();
 }
 
 async function cancelOrder(orderId) {
-    const result = await Swal.fire({
-        title: 'Cancel Order?',
-        text: "Are you sure you want to cancel this order?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, cancel it!'
-    });
+    try {
+        const result = await Swal.fire({
+            title: 'Cancel Order',
+            text: 'Are you sure you want to cancel this order?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Cancel Order',
+            cancelButtonText: 'No, Keep Order',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            reverseButtons: true
+        });
 
-    if (result.isConfirmed) {
-        try {
-            const response = await fetch(`/order/${orderId}/cancel`, {
-                method: 'POST'
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Cancelling Order...',
+                text: 'Please wait',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
             });
+
+            const response = await fetch(`/order/${orderId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
             const data = await response.json();
 
-            if (data.success) {
-                Swal.fire('Cancelled!', 'Your order has been cancelled.', 'success')
-                    .then(() => window.location.reload());
+            if (response.ok && data.success) {
+                await Swal.fire({
+                    title: 'Order Cancelled',
+                    text: 'Your order has been cancelled successfully',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                window.location.reload();
             } else {
-                Swal.fire('Error', data.message || 'Failed to cancel order', 'error');
+                throw new Error(data.message || 'Failed to cancel order');
             }
-        } catch (error) {
-            Swal.fire('Error', 'Something went wrong', 'error');
         }
+    } catch (error) {
+        console.error('Error cancelling order:', error);
+        Swal.fire({
+            title: 'Error',
+            text: error.message || 'Something went wrong while cancelling the order',
+            icon: 'error'
+        });
     }
 }
 
 async function returnOrder(orderId) {
-    const result = await Swal.fire({
-        title: 'Return Order?',
-        text: "Are you sure you want to return this order?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, return it!'
-    });
+    try {
+        const result = await Swal.fire({
+            title: 'Return Order',
+            text: 'Are you sure you want to return this order?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Return Order',
+            cancelButtonText: 'No, Keep Order',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            reverseButtons: true
+        });
 
-    if (result.isConfirmed) {
-        try {
-            const response = await fetch(`/order/${orderId}/return`, {
-                method: 'POST'
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Processing Return...',
+                text: 'Please wait',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
             });
+
+            const response = await fetch(`/order/${orderId}/return`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+
             const data = await response.json();
 
-            if (data.success) {
-                Swal.fire('Return Requested!', 'Your return request has been submitted.', 'success')
-                    .then(() => window.location.reload());
+            if (response.ok && data.success) {
+                await Swal.fire({
+                    title: 'Return Requested',
+                    text: 'Your return request has been submitted successfully',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                window.location.reload();
             } else {
-                Swal.fire('Error', data.message || 'Failed to request return', 'error');
+                throw new Error(data.message || 'Failed to process return request');
             }
-        } catch (error) {
-            Swal.fire('Error', 'Something went wrong', 'error');
         }
+    } catch (error) {
+        console.error('Error returning order:', error);
+        Swal.fire({
+            title: 'Error',
+            text: error.message || 'Something went wrong while processing the return',
+            icon: 'error'
+        });
     }
 }
 
-function downloadInvoice(orderId) {
-    window.location.href = `/order/${orderId}/invoice`;
+async function downloadInvoice(orderId) {
+    try {
+        Swal.fire({
+            title: 'Downloading Invoice...',
+            text: 'Please wait',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const response = await fetch(`/order/${orderId}/invoice`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            Swal.fire({
+                title: 'Success',
+                text: 'Invoice downloaded successfully',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else {
+            throw new Error(data.message || 'Failed to download invoice');
+        }
+    } catch (error) {
+        console.error('Error downloading invoice:', error);
+        Swal.fire({
+            title: 'Error',
+            text: error.message || 'Something went wrong while downloading the invoice',
+            icon: 'error'
+        });
+    }
 }
 </script>
 

@@ -434,7 +434,7 @@ document.getElementById('add-address-form').addEventListener('submit', async fun
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(formData),
-            credentials: 'include' // Add this to include cookies/session
+            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -452,7 +452,7 @@ document.getElementById('add-address-form').addEventListener('submit', async fun
         if (data.success) {
             alert(data.message || 'Address added successfully');
             hideAddAddressModal();
-            window.location.reload();
+            window.location.href = '/checkout';
         } else {
             throw new Error(data.message || 'Failed to add address');
         }

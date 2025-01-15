@@ -32,25 +32,42 @@ const orderController = {
     cancelOrder: async (req, res) => {
         try {
             const orderId = req.params.orderId;
-            const userId = req.session.user._id;
+            const userId = req.session.user;
+
+            console.log('Attempting to cancel order:', orderId, 'for user:', userId);
 
             const order = await Order.findOne({ _id: orderId, user: userId });
             
             if (!order) {
-                return res.status(404).json({ message: 'Order not found' });
+                console.log('Order not found:', orderId);
+                return res.status(404).json({ 
+                    success: false, 
+                    message: 'Order not found' 
+                });
             }
 
             if (order.status === 'Delivered' || order.status === 'Cancelled') {
-                return res.status(400).json({ message: 'Cannot cancel this order' });
+                console.log('Cannot cancel order with status:', order.status);
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Cannot cancel order that is ${order.status.toLowerCase()}` 
+                });
             }
 
             order.status = 'Cancelled';
             await order.save();
 
-            res.json({ message: 'Order cancelled successfully', order });
+            console.log('Order cancelled successfully:', orderId);
+            res.json({ 
+                success: true, 
+                message: 'Order cancelled successfully'
+            });
         } catch (error) {
             console.error('Error cancelling order:', error);
-            res.status(500).json({ message: 'Failed to cancel order' });
+            res.status(500).json({ 
+                success: false, 
+                message: 'Failed to cancel order' 
+            });
         }
     },
 

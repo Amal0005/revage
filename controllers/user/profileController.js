@@ -168,36 +168,46 @@ const resetPassword = async (req, res) => {
     try {
         const { newPass1, newPass2 } = req.body;
         const email = req.session.email;
-        console.log("session ",req.session)
+
         if (!email) {
-            return res.render("user/reset-password", { message: "Session expired. Please try again." });
+            return res.status(401).json({ message: "Session expired. Please try again." });
         }
-        if (newPass1 === newPass2) {
-            const passwordHash = await securePassword(newPass1);
-            await User.updateOne(
-                { email: email },
-                { $set: { password: passwordHash } }
-            );
-            req.session.destroy((err) => {
-                if (err) console.error("Session destruction error:", err);
-                res.redirect("/login");
-            });
-        } else {
-            res.render("user/reset-password", { message: "Passwords do not match" });
+
+        if (newPass1 !== newPass2) {
+            return res.status(400).json({ message: "Passwords do not match" });
         }
+
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPass1, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        req.session.destroy((err) => {
+            if (err) {
+                console.error("Session destruction error:", err);
+                return res.status(500).json({ message: "Error during logout" });
+            }
+            res.status(200).json({ message: "Password changed successfully" });
+        });
     } catch (error) {
-        console.error("Error resetting password:", error);
+        console.error("Error updating password:", error);
+        res.status(500).json({ message: "An error occurred. Please try again later." });
+    }
+};
+
+const getResetPassword = async (req, res) => {
+    try {
+        res.render('user/reset-password');
+    } catch (error) {
+        console.error("Error rendering reset password page:", error);
         res.redirect("/pageNotFound");
     }
 };
-const getResetPassword=async(req,res)=>{
-    try{
-     res.render('user/reset-password')
-    }
-    catch(error){
 
-    }
-}
 
 
 const postNewPassword = async (req, res) => {
