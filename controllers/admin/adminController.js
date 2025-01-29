@@ -1,6 +1,7 @@
 const User = require("../../models/userSchema");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema");
+const Category = require("../../models/categorySchema");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
@@ -43,37 +44,55 @@ const login = async (req, res) => {
 
 const loadDashboard = async (req, res) => {
   try {
-    // Get total revenue
-    const orders = await Order.find();
-    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    // Get all orders and filter out any without totalAmount
+    const orders = await Order.find().select('totalAmount orderDate status');
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
-    // Get total orders count
     const totalOrders = await Order.countDocuments();
 
-    // Get total products count
     const totalProducts = await Product.countDocuments();
 
-    // Get monthly earnings (current month)
     const currentDate = new Date();
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const monthlyOrders = await Order.find({
       orderDate: { $gte: firstDayOfMonth }
-    });
-    const monthlyEarnings = monthlyOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+    }).select('totalAmount');
+    const monthlyEarnings = monthlyOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 
-    // Get recent orders
     const recentOrders = await Order.find()
       .populate('user', 'name')
       .populate('items.product', 'productName')
       .sort({ orderDate: -1 })
       .limit(5);
 
+    // Get category data with product counts
+    const categories = await Category.aggregate([
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: 'category',
+          as: 'products'
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          count: { $size: '$products' }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
     const dashboardData = {
       totalRevenue,
       totalOrders,
       totalProducts,
       monthlyEarnings,
-      recentOrders
+      recentOrders,
+      categories // Add categories to dashboard data
     };
 
     res.render("admin/dashboard", dashboardData);

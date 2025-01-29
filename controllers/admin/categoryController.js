@@ -1,6 +1,5 @@
-const Category = require("../../models/categorySchema"); // Import the correct schema
+const Category = require("../../models/categorySchema"); 
 
-// Fetch paginated categories
 const categoryInfo = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -9,7 +8,7 @@ const categoryInfo = async (req, res) => {
 
         console.log(`Fetching categories with skip: ${skip}, limit: ${limit}`);
 
-        const categoryData = await Category.find({}) // Use the correct model
+        const categoryData = await Category.find({})
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -33,7 +32,7 @@ const categoryInfo = async (req, res) => {
     }
 };
 
-// Add a new category
+
 const addCategory = async (req, res) => {
     const { name, description } = req.body;
     try {
@@ -43,7 +42,7 @@ const addCategory = async (req, res) => {
         if (existingCategory) {
             return res.status(400).json({ message: "Category already exists" });
         }
-        const newCategory = new Category({ // Use the correct model
+        const newCategory = new Category({ 
             name,
             description,
         });
@@ -55,7 +54,6 @@ const addCategory = async (req, res) => {
     }
 };
 
-// List a category
 const getListCategory = async (req, res) => {
     try {
         let id = req.query.id;
@@ -67,7 +65,6 @@ const getListCategory = async (req, res) => {
     }
 };
 
-// Unlist a category
 const getUnlistCategory = async (req, res) => {
     try {
         let id = req.query.id;
@@ -79,42 +76,38 @@ const getUnlistCategory = async (req, res) => {
     }
 };
 
-// Render the edit category page
 const getEditCategory = async (req, res) => {
     try {
-        const categoryId = req.query.id; // Extract the category ID from the URL
-        const category = await Category.findById(categoryId); // Fetch category from the database
+        const categoryId = req.query.id;
+        const category = await Category.findById(categoryId);
         if (!category) {
             console.log("Category not found");
             return res.status(404).send("Category not found");
         }
-        res.render("admin/edit-category", { category }); // Pass category data to EJS
+        res.render("admin/edit-category", { category });
     } catch (error) {
         console.error("Error fetching category:", error);
         res.status(500).send("Server error");
     }
 };
 
-// Edit a category
 const editCategory = async (req, res) => {
-    const { id } = req.query; // Extract 'id' from query parameters
-    const { categoryName, description } = req.body; // Extract form data
+    const { id } = req.query; 
+    const { categoryName, description } = req.body;
 
     if (!id) {
         return res.status(400).json({ message: "ID is required" });
     }
 
-    // Validate input
     if (!categoryName || !description) {
         return res.status(400).json({ error: "All fields are required." });
     }
 
     try {
-        // Update the category in the database
         const updatedCategory = await Category.findByIdAndUpdate(
             id,
             { name: categoryName, description },
-            { new: true } // Return the updated document
+            { new: true } 
         );
 
         if (!updatedCategory) {
@@ -131,7 +124,6 @@ const editCategory = async (req, res) => {
     }
 };
 
-// Get category list for AJAX
 const getCategoryList = async (req, res) => {
     try {
         const categories = await Category.find({}).sort({ createdAt: -1 });
@@ -141,7 +133,6 @@ const getCategoryList = async (req, res) => {
     }
 };
 
-// Get single category for editing
 const getCategory = async (req, res) => {
     try {
         const category = await Category.findById(req.params.id);
@@ -154,13 +145,11 @@ const getCategory = async (req, res) => {
     }
 };
 
-// Update category
 const updateCategory = async (req, res) => {
     try {
         const { name, description } = req.body;
         const categoryId = req.params.id;
 
-        // Check if category exists
         const existingCategory = await Category.findOne({ 
             name, 
             _id: { $ne: categoryId } 
@@ -199,7 +188,6 @@ const updateCategory = async (req, res) => {
     }
 };
 
-// List/Unlist category
 const toggleCategoryStatus = async (req, res) => {
     try {
         const { id } = req.body;
@@ -231,6 +219,72 @@ const toggleCategoryStatus = async (req, res) => {
     }
 };
 
+const addCategoryOffer = async (req, res) => {
+    try {
+        const { categoryId, percentage } = req.body;
+
+        // Validate percentage
+        if (!percentage || percentage <= 0 || percentage > 100) {
+            return res.status(400).json({
+                status: false,
+                message: "Please provide a valid offer percentage between 1 and 100"
+            });
+        }
+
+        // Find and update the category
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({
+                status: false,
+                message: "Category not found"
+            });
+        }
+
+        category.categoryOffer = percentage;
+        await category.save();
+
+        return res.json({
+            status: true,
+            message: "Offer added successfully"
+        });
+    } catch (error) {
+        console.error("Error adding category offer:", error);
+        return res.status(500).json({
+            status: false,
+            message: "Failed to add offer"
+        });
+    }
+};
+
+const removeCategoryOffer = async (req, res) => {
+    try {
+        const { categoryId } = req.body;
+
+        // Find and update the category
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(404).json({
+                status: false,
+                message: "Category not found"
+            });
+        }
+
+        category.categoryOffer = 0;
+        await category.save();
+
+        return res.json({
+            status: true,
+            message: "Offer removed successfully"
+        });
+    } catch (error) {
+        console.error("Error removing category offer:", error);
+        return res.status(500).json({
+            status: false,
+            message: "Failed to remove offer"
+        });
+    }
+};
+
 module.exports = {
     categoryInfo,
     addCategory,
@@ -241,5 +295,7 @@ module.exports = {
     getCategoryList,
     getCategory,
     updateCategory,
-    toggleCategoryStatus
+    toggleCategoryStatus,
+    addCategoryOffer,
+    removeCategoryOffer
 };

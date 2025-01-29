@@ -196,6 +196,11 @@
             <h1>Dashboard Overview</h1>
             <p>Welcome back! Here's what's happening with your store today.</p>
         </div>
+        <div class="header-actions">
+            <a href="/admin/sales-report" class="btn btn-primary">
+                <i class="fas fa-file-invoice me-2"></i>Sales Report
+            </a>
+        </div>
     </div>
 
     <!-- Stats Grid -->
@@ -206,7 +211,7 @@
                     <i class="fas fa-dollar-sign"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>₹<%= totalRevenue || '0' %></h3>
+                    <h3>₹<%= (totalRevenue || 0).toLocaleString() %></h3>
                     <p>Total Revenue</p>
                 </div>
             </div>
@@ -242,7 +247,7 @@
                     <i class="fas fa-chart-line"></i>
                 </div>
                 <div class="stat-info">
-                    <h3>₹<%= monthlyEarnings || '0' %></h3>
+                    <h3>₹<%= (monthlyEarnings || 0).toLocaleString() %></h3>
                     <p>Monthly Earnings</p>
                 </div>
             </div>
@@ -353,17 +358,23 @@
     new Chart(categoryCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Electronics', 'Clothing', 'Books', 'Others'],
+            labels: <%- JSON.stringify(categories.map(cat => cat.name)) %>,
             datasets: [{
-                data: [30, 25, 20, 25],
-                backgroundColor: ['#1976d2', '#2e7d32', '#f57c00', '#7b1fa2']
+                data: <%- JSON.stringify(categories.map(cat => cat.count)) %>,
+                backgroundColor: ['#1976d2', '#2e7d32', '#f57c00', '#7b1fa2', '#9c27b0', '#ed6c02']
             }]
         },
         options: {
             responsive: true,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 12
+                        }
+                    }
                 }
             }
         }

@@ -1,0 +1,803 @@
+<%- include("../../views/partials/admin/header.ejs") %>
+
+<style>
+    .sales-container {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    .table-container {
+        background: #fff;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-top: 1rem;
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.875rem;
+    }
+
+    .custom-table th {
+        background: #f8f9fa;
+        padding: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: #1a1a1a;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .custom-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+        color: #495057;
+        vertical-align: middle;
+    }
+
+    .custom-table tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1;
+    }
+
+    .offer-badge {
+        background: #fff0f0;
+        color: #ff4444;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .no-offer {
+        color: #999;
+        font-size: 0.75rem;
+    }
+
+    .status-delivered {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .status-pending {
+        background: #fff3e0;
+        color: #ef6c00;
+    }
+
+    .status-failed {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .order-id {
+        font-family: monospace;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .amount {
+        font-weight: 500;
+        color: #1a1a1a;
+    }
+
+    .payment-method {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .payment-method i {
+        font-size: 0.875rem;
+    }
+
+    .pagination-container {
+        margin-top: 1rem;
+        padding: 1rem 0;
+        border-top: 1px solid #eee;
+    }
+
+    .pagination-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pagination-btn {
+        min-width: 2rem;
+        height: 2rem;
+        padding: 0 0.5rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+
+    .filter-container {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .date-filter {
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background-color: #fff;
+        font-size: 0.875rem;
+    }
+    
+    .date-range {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .date-input {
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+</style>
+
+<div class="sales-container">
+    <div class="page-header">
+        <h1 class="page-title">Sales Report</h1>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="exportToExcel()">
+                <i class="fas fa-file-excel"></i> Excel
+            </button>
+        </div>
+    </div>
+
+    <div class="filter-container">
+        <select id="dateFilter" class="date-filter" onchange="handleDateFilterChange()">
+            <option value="all">All Time</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="custom">Custom Range</option>
+        </select>
+        
+        <div id="dateRangeContainer" class="date-range" style="display: none;">
+            <input type="date" id="startDate" class="date-input" onchange="handleDateChange()" value="<%= startDate %>">
+            <span>to</span>
+            <input type="date" id="endDate" class="date-input" onchange="handleDateChange()" value="<%= endDate %>">
+        </div>
+    </div>
+
+    <div class="stats-cards">
+        <div class="stat-card">
+            <h3 class="stat-value">₹<%= (totalRevenue || 0).toLocaleString() %></h3>
+            <p class="stat-label">Revenue</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="stat-value"><%= totalOrders %></h3>
+            <p class="stat-label">Orders</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="stat-value"><%= deliveredOrders %></h3>
+            <p class="stat-label">Delivered</p>
+        </div>
+        <div class="stat-card">
+            <h3 class="stat-value">₹<%= (Math.round(averageOrderValue) || 0).toLocaleString() %></h3>
+            <p class="stat-label">Avg. Order</p>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Products</th>
+                    <th>Payment</th>
+                    <th>Amount</th>
+                    <th>Offer</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (orders && orders.length > 0) { %>
+                    <% orders.forEach(order => { %>
+                        <tr>
+                            <td>
+                                <span class="order-id">#<%= order._id %></span>
+                            </td>
+                            <td>
+                                <%= new Date(order.orderDate).toLocaleDateString('en-IN', { 
+                                    year: 'numeric', 
+                                    month: 'short', 
+                                    day: 'numeric'
+                                }) %>
+                            </td>
+                            <td><%= order.user.name %></td>
+                            <td>
+                                <% order.items.forEach(item => { %>
+                                    <%= item.product ? item.product.productName : 'Product Unavailable' %><br>
+                                <% }); %>
+                            </td>
+                            <td>
+                                <span class="payment-method">
+                                    <i class="fas <%= (order.paymentMethod || 'COD').toLowerCase() === 'cod' ? 'fa-money-bill' : 
+                                                    (order.paymentMethod || '').toLowerCase().includes('card') ? 'fa-credit-card' : 
+                                                    (order.paymentMethod || '').toLowerCase().includes('upi') ? 'fa-mobile-alt' : 
+                                                    'fa-wallet' %>"></i>
+                                    <%= order.paymentMethod || 'COD' %>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="amount">₹<%= (order.totalAmount || 0).toLocaleString() %></span>
+                            </td>
+                            <td>
+                                <% let hasOffer = false; %>
+                                <% order.items.forEach(item => { %>
+                                    <% if (item.appliedOffer && item.appliedOffer.percentage) { %>
+                                        <span class="offer-badge"><%= item.appliedOffer.percentage %>%</span><br>
+                                        <% hasOffer = true; %>
+                                    <% } %>
+                                <% }); %>
+                                <% if (!hasOffer) { %>
+                                    <span class="no-offer">No offer</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <span class="status-badge <%= order.status === 'Delivered' ? 'status-delivered' : 
+                                                            order.status === 'Cancelled' ? 'status-failed' :
+                                                            'status-pending' %>">
+                                    <%= order.status %>
+                                </span>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="8" class="text-center py-3">No orders found</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <% if (totalPages > 1) { %>
+        <div class="pagination-container">
+            <div class="pagination">
+                <% if (hasPreviousPage) { %>
+                    <a href="/admin/sales-report?page=1" class="pagination-btn">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a href="/admin/sales-report?page=<%= previousPage %>" class="pagination-btn">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                <% } %>
+
+                <% 
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                if (endPage - startPage < 4) {
+                    startPage = Math.max(1, endPage - 4);
+                }
+                %>
+
+                <% for (let i = startPage; i <= endPage; i++) { %>
+                    <a href="/admin/sales-report?page=<%= i %>" 
+                       class="pagination-btn <%= i === currentPage ? 'active' : '' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+
+                <% if (hasNextPage) { %>
+                    <a href="/admin/sales-report?page=<%= nextPage %>" class="pagination-btn">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="/admin/sales-report?page=<%= lastPage %>" class="pagination-btn">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+async function exportToPDF() {
+    try {
+        // Create the content for PDF with improved styling
+        const pdfContainer = document.createElement('div');
+        pdfContainer.style.cssText = `
+            padding: 20px;
+            background-color: white;
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+        `;
+
+        // Add header with improved styling
+        const header = document.createElement('div');
+        header.style.cssText = `
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        `;
+        
+        // Get date range information
+        const dateFilter = document.getElementById('dateFilter').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        let dateRange = 'All Time';
+        if (dateFilter === 'daily') {
+            dateRange = 'Daily Report - ' + formatDisplayDate(new Date());
+        } else if (dateFilter === 'weekly') {
+            const weekStart = new Date();
+            weekStart.setDate(weekStart.getDate() - 6);
+            dateRange = 'Weekly Report - ' + formatDisplayDate(weekStart) + ' to ' + formatDisplayDate(new Date());
+        } else if (dateFilter === 'monthly') {
+            const monthStart = new Date();
+            monthStart.setDate(1);
+            const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+            dateRange = 'Monthly Report - ' + formatDisplayDate(monthStart) + ' to ' + formatDisplayDate(monthEnd);
+        } else if (dateFilter === 'custom' && startDate && endDate) {
+            dateRange = 'Custom Report - ' + formatDisplayDate(new Date(startDate)) + ' to ' + formatDisplayDate(new Date(endDate));
+        }
+
+        header.innerHTML = `
+            <h2 style="margin-bottom: 10px; color: #333; font-size: 28px; font-weight: bold;">REVAGE Sales Report</h2>
+            <p style="color: #666; margin: 5px 0; font-size: 16px; font-weight: 500;">${dateRange}</p>
+            <p style="color: #666; margin: 5px 0; font-size: 14px;">Generated on ${new Date().toLocaleString()}</p>
+        `;
+        pdfContainer.appendChild(header);
+
+        // Add statistics with improved styling
+        const statsCards = document.querySelector('.stats-cards');
+        if (statsCards) {
+            const statsSection = document.createElement('div');
+            statsSection.style.cssText = `
+                margin-bottom: 40px;
+                background-color: #fff;
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            `;
+
+            statsSection.innerHTML = `
+                <h3 style="color: #333; margin-bottom: 20px; font-size: 20px; font-weight: 600;">Summary Statistics</h3>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                    ${Array.from(statsCards.children).map(card => `
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <h4 style="margin: 0; color: #333; font-size: 22px; font-weight: bold;">${card.querySelector('.stat-value').textContent}</h4>
+                            <p style="margin: 8px 0 0; color: #666; font-size: 14px;">${card.querySelector('.stat-label').textContent}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            pdfContainer.appendChild(statsSection);
+        }
+
+        // Add orders table with improved styling
+        const tableContainer = document.querySelector('.table-container');
+        if (tableContainer) {
+            const tableSection = document.createElement('div');
+            tableSection.style.cssText = `
+                margin-top: 20px;
+                background-color: #fff;
+                border-radius: 8px;
+                padding: 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            `;
+            
+            // Get the original table and modify its structure for PDF
+            const originalTable = tableContainer.querySelector('table');
+            const rows = Array.from(originalTable.querySelectorAll('tr'));
+            
+            const tableHTML = `
+                <h3 style="color: #333; margin-bottom: 20px; font-size: 20px; font-weight: 600;">Order Details</h3>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6; font-weight: 600; color: #333;">Order ID</th>
+                                <th style="padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6; font-weight: 600; color: #333;">Date</th>
+                                <th style="padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6; font-weight: 600; color: #333;">Customer</th>
+                                <th style="padding: 15px; text-align: left; border-bottom: 2px solid #dee2e6; font-weight: 600; color: #333;">Products</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: 600; color: #333;">Payment</th>
+                                <th style="padding: 15px; text-align: right; border-bottom: 2px solid #dee2e6; font-weight: 600; color: #333;">Amount</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: 600; color: #333;">Offer</th>
+                                <th style="padding: 15px; text-align: center; border-bottom: 2px solid #dee2e6; font-weight: 600; color: #333;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows.slice(1).map(row => {
+                                const cells = Array.from(row.querySelectorAll('td'));
+                                if (cells.length === 0) return '';
+                                
+                                // Get status from the original row
+                                const status = cells[7] ? cells[7].textContent.trim() : '';
+                                const statusColor = getStatusColor(status);
+                                
+                                return `
+                                    <tr style="border-bottom: 1px solid #dee2e6;">
+                                        <td style="padding: 15px; text-align: left; color: #333;">${cells[0] ? cells[0].textContent : ''}</td>
+                                        <td style="padding: 15px; text-align: left; color: #333;">${cells[1] ? cells[1].textContent : ''}</td>
+                                        <td style="padding: 15px; text-align: left; color: #333;">${cells[2] ? cells[2].textContent : ''}</td>
+                                        <td style="padding: 15px; text-align: left; color: #333;">${cells[3] ? cells[3].textContent : ''}</td>
+                                        <td style="padding: 15px; text-align: center; color: #333;">${cells[4] ? cells[4].textContent : ''}</td>
+                                        <td style="padding: 15px; text-align: right; color: #333; font-weight: 500;">${cells[5] ? cells[5].textContent : ''}</td>
+                                        <td style="padding: 15px; text-align: center; color: #333;">${cells[6] ? cells[6].textContent : ''}</td>
+                                        <td style="padding: 15px; text-align: center;">
+                                            <span style="
+                                                display: inline-block;
+                                                padding: 6px 12px;
+                                                border-radius: 20px;
+                                                font-size: 12px;
+                                                font-weight: 500;
+                                                background-color: ${statusColor.bg};
+                                                color: ${statusColor.text};
+                                                text-transform: capitalize;
+                                            ">
+                                                ${status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            tableSection.innerHTML = tableHTML;
+            pdfContainer.appendChild(tableSection);
+        }
+
+        // Configure PDF options
+        const opt = {
+            margin: [0.75, 0.75, 0.75, 0.75],
+            filename: `sales-report-${dateFilter}-${new Date().toISOString().split('T')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { 
+                scale: 2,
+                useCORS: true,
+                logging: true,
+                letterRendering: true,
+                backgroundColor: '#ffffff'
+            },
+            jsPDF: { 
+                unit: 'in', 
+                format: 'a4', 
+                orientation: 'landscape'
+            }
+        };
+
+        // Add the container to document temporarily
+        document.body.appendChild(pdfContainer);
+
+        // Generate and download PDF
+        await html2pdf().set(opt).from(pdfContainer).save();
+
+        // Cleanup
+        document.body.removeChild(pdfContainer);
+
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Error generating PDF. Please try again.');
+    }
+}
+
+function getStatusColor(status) {
+    switch (status.toLowerCase()) {
+        case 'delivered':
+            return { bg: '#e3fcef', text: '#0a6245' };
+        case 'pending':
+            return { bg: '#fff8e6', text: '#94710a' };
+        case 'processing':
+            return { bg: '#e6f3ff', text: '#0a5285' };
+        case 'cancelled':
+            return { bg: '#ffe6e6', text: '#851d1d' };
+        default:
+            return { bg: '#f0f0f0', text: '#333333' };
+    }
+}
+
+function formatDisplayDate(date) {
+    return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function exportToExcel() {
+    try {
+        // Get the current date filter and date range
+        const dateFilter = document.getElementById('dateFilter').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        // Get date range information for the filename
+        let dateRange = 'all-time';
+        if (dateFilter === 'daily') {
+            dateRange = 'daily-' + new Date().toISOString().split('T')[0];
+        } else if (dateFilter === 'weekly') {
+            dateRange = 'weekly';
+        } else if (dateFilter === 'monthly') {
+            dateRange = 'monthly';
+        } else if (dateFilter === 'custom') {
+            dateRange = `custom-${startDate}-to-${endDate}`;
+        }
+
+        // Get table data
+        const table = document.querySelector('.custom-table');
+        const rows = Array.from(table.querySelectorAll('tr'));
+        
+        // Prepare the workbook data
+        const workbook = XLSX.utils.book_new();
+        
+        // Add Summary Statistics sheet
+        const statsCards = document.querySelector('.stats-cards');
+        const summaryData = [
+            ['Sales Report Summary'],
+            ['Generated on', new Date().toLocaleString()],
+            ['Date Range', getDateRangeText()],
+            [''],
+            ['Metric', 'Value'],
+            ...Array.from(statsCards.children).map(card => [
+                card.querySelector('.stat-label').textContent,
+                card.querySelector('.stat-value').textContent
+            ])
+        ];
+        
+        const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+        // Style the summary sheet
+        summarySheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
+        summarySheet['!cols'] = [{ wch: 15 }, { wch: 20 }];
+        
+        // Add Orders sheet
+        const headers = Array.from(rows[0].querySelectorAll('th')).map(th => th.textContent.trim());
+        const orderData = [
+            headers,
+            ...rows.slice(1).map(row => 
+                Array.from(row.querySelectorAll('td')).map(td => {
+                    // Clean up the text content (remove extra spaces and newlines)
+                    let text = td.textContent.trim().replace(/\s+/g, ' ');
+                    // Remove the '#' from Order ID
+                    if (headers[0] === 'Order ID') {
+                        text = text.replace('#', '');
+                    }
+                    // Format currency values
+                    if (text.includes('₹')) {
+                        text = text.replace('₹', '').replace(/,/g, '');
+                        return parseFloat(text);
+                    }
+                    return text;
+                })
+            )
+        ];
+        
+        const ordersSheet = XLSX.utils.aoa_to_sheet(orderData);
+        XLSX.utils.book_append_sheet(workbook, ordersSheet, 'Orders');
+
+        // Auto-size columns in orders sheet
+        const maxColWidths = orderData[0].map((_, i) => 
+            Math.max(...orderData.map(row => 
+                row[i] ? String(row[i]).length : 0
+            ))
+        );
+        ordersSheet['!cols'] = maxColWidths.map(width => ({ wch: Math.min(width + 2, 50) }));
+
+        // Generate Excel file
+        const filename = `sales-report-${dateRange}.xlsx`;
+        XLSX.writeFile(workbook, filename);
+
+    } catch (error) {
+        console.error('Error generating Excel:', error);
+        alert('Error generating Excel file. Please try again.');
+    }
+}
+
+function getDateRangeText() {
+    const dateFilter = document.getElementById('dateFilter').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    if (dateFilter === 'daily') {
+        return 'Daily Report - ' + formatDisplayDate(new Date());
+    } else if (dateFilter === 'weekly') {
+        const weekStart = new Date();
+        weekStart.setDate(weekStart.getDate() - 6);
+        return 'Weekly Report - ' + formatDisplayDate(weekStart) + ' to ' + formatDisplayDate(new Date());
+    } else if (dateFilter === 'monthly') {
+        const monthStart = new Date();
+        monthStart.setDate(1);
+        const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
+        return 'Monthly Report - ' + formatDisplayDate(monthStart) + ' to ' + formatDisplayDate(monthEnd);
+    } else if (dateFilter === 'custom' && startDate && endDate) {
+        return 'Custom Report - ' + formatDisplayDate(new Date(startDate)) + ' to ' + formatDisplayDate(new Date(endDate));
+    }
+    return 'All Time';
+}
+
+function handleDateFilterChange() {
+    const filterValue = document.getElementById('dateFilter').value;
+    const dateRangeContainer = document.getElementById('dateRangeContainer');
+    
+    // Hide date range inputs by default
+    dateRangeContainer.style.display = 'none';
+    
+    // Set default dates based on filter
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day
+    let start = new Date(today);
+    let end = new Date(today);
+    
+    switch(filterValue) {
+        case 'daily':
+            // Today only
+            start = today;
+            end = today;
+            break;
+            
+        case 'weekly':
+            // Last 7 days
+            start = new Date(today);
+            start.setDate(today.getDate() - 6);
+            end = today;
+            break;
+            
+        case 'monthly':
+            // Current month
+            start = new Date(today.getFullYear(), today.getMonth(), 1);
+            end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            break;
+            
+        case 'custom':
+            // Show date range inputs
+            dateRangeContainer.style.display = 'flex';
+            return;
+            
+        case 'all':
+            window.location.href = '/admin/sales-report';
+            return;
+    }
+    
+    // Format dates for the URL
+    const startStr = formatDate(start);
+    const endStr = formatDate(end);
+    // Redirect to filtered view
+    window.location.href = `/admin/sales-report?startDate=${startStr}&endDate=${endStr}`;
+}
+
+function handleDateChange() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    if (startDate && endDate) {
+        window.location.href = `/admin/sales-report?startDate=${startDate}&endDate=${endDate}`;
+    }
+}
+
+// Helper function to format date as YYYY-MM-DD
+function formatDate(date) {
+    const d = new Date(date);
+    let month = '' + (d.getMonth() + 1);
+    let day = '' + d.getDate();
+    const year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    return [year, month, day].join('-');
+}
+
+// Set initial filter value based on URL parameters
+window.addEventListener('load', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const startDate = urlParams.get('startDate');
+    const endDate = urlParams.get('endDate');
+    const dateFilter = document.getElementById('dateFilter');
+    const dateRangeContainer = document.getElementById('dateRangeContainer');
+
+    if (!startDate || !endDate) {
+        dateFilter.value = 'all';
+        return;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Determine the filter type based on date range
+    if (start.toDateString() === end.toDateString() && start.toDateString() === today.toDateString()) {
+        dateFilter.value = 'daily';
+    } else if (end.getTime() === today.getTime() && 
+               start.getTime() === new Date(today.setDate(today.getDate() - 6)).getTime()) {
+        dateFilter.value = 'weekly';
+    } else if (start.getDate() === 1 && 
+               end.getDate() === new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate() &&
+               start.getMonth() === end.getMonth()) {
+        dateFilter.value = 'monthly';
+    } else {
+        dateFilter.value = 'custom';
+        dateRangeContainer.style.display = 'flex';
+    }
+});
+</script>
+
+<%- include("../../views/partials/admin/footer.ejs") %>

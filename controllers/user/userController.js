@@ -2,8 +2,8 @@ const User = require("../../models/userSchema");
 const category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 const env = require("dotenv").config();
-const bcrypt = require("bcryptjs"); // Correct import
-
+const bcrypt = require("bcryptjs");
+const Wallet = require("../../models/walletSchema");
 const nodemailer = require("nodemailer");
 
 const pageNotFound = async (req, res) => {
@@ -286,21 +286,45 @@ const logout =async(req,res)=>{
 
 const userProfile = async (req, res) => {
   try {
-      const user = req.session.user;
+    const userId = req.session.user;
 
-      if (!user) {
-          return res.redirect("/login");
+    if (!userId) {
+      return res.redirect("/login");
+    }
+
+    // Fetch user data with wallet reference
+    const userData = await User.findById(userId).populate({
+      path: 'wallet',
+      populate: {
+        path: 'transactions',
+        options: { sort: { date: -1 } }
       }
+    });
 
-   
+    if (!userData) {
+      return res.redirect("/login");
+    }
 
-
-      res.render("profile", {
-          user: user,
+    // If user has no wallet, create one
+    if (!userData.wallet) {
+      const newWallet = new Wallet({
+        user: userId,
+        balance: 0,
+        transactions: []
       });
+      await newWallet.save();
+
+      userData.wallet = newWallet;
+      await userData.save();
+    }
+
+    res.render("user/profile", {
+      user: userData,
+      wallet: userData.wallet
+    });
   } catch (error) {
-      console.error("Error fetching user profile:", error.message);
-      res.status(500).send("Internal Server Error");
+    console.error("Error fetching user profile:", error.message);
+    res.status(500).send("Internal Server Error");
   }
 };
 
@@ -376,6 +400,38 @@ const productDetail = async (req, res) => {
   }
 };
 
+const getCheckoutPage = async (req, res) => {
+    try {
+        const userId = req.session.user;
+        const user = await User.findById(userId)
+            .populate('wallet')
+            .populate({
+                path: 'cart',
+                populate: {
+                    path: 'items.product',
+                    select: 'productName productImage salePrice'
+                }
+            });
+
+        if (!user) {
+            return res.redirect('/login');
+        }
+
+        if (!user.cart || !user.cart.items || user.cart.items.length === 0) {
+            return res.redirect('/cart');
+        }
+
+        res.render('user/checkout', {
+            user,
+            cart: user.cart,
+            wallet: user.wallet
+        });
+    } catch (error) {
+        console.error('Error loading checkout page:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+
 module.exports = {
   loadHomepage,
   pageNotFound,
@@ -389,6 +445,7 @@ module.exports = {
   userProfile,
   loadShoppingPage,
   productDetail,
+  getCheckoutPage,
   generateOtp, 
   sendVerificationEmail 
 };

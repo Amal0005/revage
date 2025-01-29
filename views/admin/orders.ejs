@@ -129,15 +129,16 @@
         color: #000000;
     }
     .view-details {
-        text-decoration: none;
-        color: #000000;
-        padding: 0.5rem 1rem;
-        border: 1px solid #000000;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-        display: inline-block;
-        font-size: 0.9rem;
-        background-color: #ffffff;
+    text-decoration: none;
+    color: #000000;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid #000000;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    font-size: 0.8rem;
+    background-color: #ffffff;
+    cursor: pointer; 
     }
     .view-details:hover {
         background-color: #000000;
@@ -176,7 +177,7 @@
                                 <% orders.forEach(order => { %>
                                     <tr>
                                         <td><span class="order-id">#<%= order._id.toString().slice(-6).toUpperCase() %></span></td>
-                                        <td><%= order.user.name %></td>
+                                        <td><%= order.user ? order.user.name : 'User not found' %></td>
                                         <td class="order-date">
                                             <%= order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-IN', { 
                                                 year: 'numeric', 
@@ -186,7 +187,7 @@
                                                 minute: '2-digit'
                                             }) : 'Date not available' %>
                                         </td>
-                                        <td class="order-amount">₹<%= order.totalAmount.toFixed(2) %></td>
+                                        <td class="order-amount">₹<%= order.totalAmount ? order.totalAmount.toFixed(2) : '0.00' %></td>
                                         <td>
                                             <select class="status-select" data-order-id="<%= order._id %>">
                                                 <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
@@ -211,52 +212,87 @@
         </main>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const statusSelects = document.querySelectorAll('.status-select');
-    
-    statusSelects.forEach(select => {
-        select.addEventListener('change', async function() {
-            const orderId = this.dataset.orderId;
+document.addEventListener('DOMContentLoaded', function () {
+    // Define the valid status order
+    const statusOrder = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Request", "Returned"];
+
+    // Attach change event to all status dropdowns
+    document.querySelectorAll('.status-select').forEach(select => {
+        let currentStatus = select.value; // Track the initial/current status
+
+        // Disable dropdown if the status is final
+        if (["Delivered", "Cancelled", "Returned"].includes(currentStatus)) {
+            select.disabled = true;
+            return;
+        }
+
+        select.addEventListener('change', async function () {
+            const orderId = this.dataset.orderId; // Order ID from data attribute
             const newStatus = this.value;
-            
+
+            console.log("Current Status:", currentStatus);
+            console.log("New Status:", newStatus);
+
+            // Check if the new status is a valid forward transition
+            if (statusOrder.indexOf(newStatus) < statusOrder.indexOf(currentStatus)) {
+                Swal.fire({
+                    title: 'Invalid Transition',
+                    text: 'You cannot revert to a previous status.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                });
+                console.log("Invalid Transition: Reverting to", currentStatus);
+                this.value = currentStatus; // Revert to the current status
+                return;
+            }
+
             try {
+                // Send the update request to the server
                 const response = await fetch('/admin/orders/update-status', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        orderId: orderId,
-                        status: newStatus
-                    })
+                    body: JSON.stringify({ orderId, status: newStatus }),
                 });
-                
-                const result = await response.json();
-                
-                if (result.success) {
+
+                const data = await response.json();
+                console.log("Server Response:", data);
+
+                if (data.success) {
                     Swal.fire({
                         title: 'Success!',
-                        text: 'Order status updated successfully',
+                        text: 'Status updated successfully.',
                         icon: 'success',
-                        confirmButtonColor: '#000000'
+                        confirmButtonText: 'OK',
                     });
+                    currentStatus = newStatus; // Update the current status on success
                 } else {
-                    throw new Error('Failed to update status');
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Failed to update status: ' + data.message,
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                    });
+                    this.value = currentStatus; // Revert to the current status
                 }
             } catch (error) {
-                console.error('Error updating order status:', error);
+                console.error('Error updating status:', error);
                 Swal.fire({
                     title: 'Error!',
-                    text: 'Failed to update order status',
+                    text: 'Failed to update status. Please try again later.',
                     icon: 'error',
-                    confirmButtonColor: '#000000'
+                    confirmButtonText: 'OK',
                 });
+                this.value = currentStatus; // Revert to the current status
             }
         });
     });
 });
+
 </script>
 
 <%- include("../../views/partials/admin/footer") %>

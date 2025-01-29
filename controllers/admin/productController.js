@@ -23,14 +23,12 @@ const addProducts = async (req, res) => {
         console.log('Adding product...');
         console.log('Request body:', req.body);
         
-        // Get the category document
         const category = await Category.findById(req.body.category);
         if (!category) {
             console.log('Invalid category:', req.body.category);
             return res.status(400).json({ error: "Invalid category" });
         }
 
-        // Check for duplicate product name
         const existingProduct = await Product.findOne({ productName: req.body.productName });
         if (existingProduct) {
             console.log('Product already exists:', req.body.productName);
@@ -39,7 +37,6 @@ const addProducts = async (req, res) => {
 
         let images = [];
 
-        // Handle traditional file uploads first
         if (req.files && req.files.length > 0) {
             console.log('Processing traditional file uploads:', req.files.length);
             const uploadDir = path.join(__dirname, '../../public/uploads/product-images');
@@ -69,20 +66,16 @@ const addProducts = async (req, res) => {
             }
         }
 
-        // Handle cropped images
         for (let i = 1; i <= 3; i++) {
             const croppedImage = req.body[`croppedImage${i}`];
             if (croppedImage && croppedImage.startsWith('data:image')) {
                 try {
-                    // Convert base64 to buffer
                     const base64Data = croppedImage.replace(/^data:image\/\w+;base64,/, '');
                     const imageBuffer = Buffer.from(base64Data, 'base64');
 
-                    // Generate filename
                     const timestamp = Date.now();
                     const filename = `product-${timestamp}-${i}.jpg`;
 
-                    // Save image
                     const uploadDir = path.join(__dirname, '../../public/uploads/product-images');
                     if (!fs.existsSync(uploadDir)) {
                         fs.mkdirSync(uploadDir, { recursive: true });
@@ -109,7 +102,6 @@ const addProducts = async (req, res) => {
             return res.status(400).json({ error: "At least one image is required" });
         }
 
-        // Create new product
         const productData = {
             productName: req.body.productName,
             description: req.body.description,
@@ -152,7 +144,6 @@ const getAllProducts = async (req, res) => {
             productName: { $regex: new RegExp(search, "i") }
         };
 
-        // Get products with pagination
         const productData = await Product.find(query)
             .limit(limit)
             .skip((page - 1) * limit)
@@ -160,10 +151,8 @@ const getAllProducts = async (req, res) => {
             .sort({ createdOn: -1 })
             .exec();
 
-        // Get total count for pagination
         const count = await Product.countDocuments(query);
 
-        // Get categories for filtering
         const categories = await Category.find({ isListed: true });
 
         res.render("admin/products", {
@@ -244,25 +233,20 @@ const deleteSingleImage = async (req, res) => {
         console.log('Delete image request:', req.body);
         const { productId, imageIndex } = req.body;
 
-        // Get the product
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({ error: "Product not found" });
         }
 
-        // Check if image exists
         if (!product.productImage || imageIndex >= product.productImage.length) {
             return res.status(400).json({ error: "Image not found" });
         }
 
-        // Get the image filename
         const imageToDelete = product.productImage[imageIndex];
 
-        // Remove image from array
         product.productImage.splice(imageIndex, 1);
         await product.save();
 
-        // Delete file from filesystem
         try {
             const imagePath = path.join(__dirname, '../../public/uploads/product-images', imageToDelete);
             if (fs.existsSync(imagePath)) {
@@ -270,7 +254,6 @@ const deleteSingleImage = async (req, res) => {
             }
         } catch (error) {
             console.error('Error deleting image file:', error);
-            // Continue even if file deletion fails
         }
 
         res.status(200).json({ success: true, message: "Image deleted successfully" });
@@ -284,28 +267,24 @@ const editProduct = async (req, res) => {
     try {
         console.log('Edit product request received:', req.body);
 
-        const productId = req.query.id;
+        const productId = req.body.productId;
         if (!productId) {
             return res.status(400).json({ error: "Product ID is required" });
         }
 
-        // Find the product
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({ error: "Product not found" });
         }
 
-        // Validate category
         const categoryId = req.body.category;
         if (!categoryId) {
             return res.status(400).json({ error: "Category ID is required" });
         }
 
-        // Validate prices
         const regularPrice = Number(req.body.regularPrice);
         const salePrice = req.body.salePrice ? Number(req.body.salePrice) : 0;
         
-        // Check for negative prices
         if (regularPrice <= 0) {
             return res.status(400).json({ error: "Regular price must be greater than 0" });
         }
@@ -314,12 +293,10 @@ const editProduct = async (req, res) => {
             return res.status(400).json({ error: "Sale price cannot be negative" });
         }
 
-        // Check if regular price is less than sale price
         if (salePrice > 0 && salePrice >= regularPrice) {
             return res.status(400).json({ error: "Regular price must be greater than sale price" });
         }
 
-        // Check for duplicate product name
         const existingProduct = await Product.findOne({
             productName: req.body.productName,
             _id: { $ne: productId }
@@ -328,10 +305,8 @@ const editProduct = async (req, res) => {
             return res.status(400).json({ error: "Product name already exists" });
         }
 
-        // Initialize newImages with existing product images
         let newImages = [...product.productImage];
 
-        // Handle file uploads
         if (req.files && req.files.length > 0) {
             console.log('Processing uploaded files:', req.files.length);
             const uploadDir = path.join(__dirname, '../../public/uploads/product-images');
@@ -364,7 +339,6 @@ const editProduct = async (req, res) => {
             }
         }
 
-        // Handle cropped images
         for (let i = 1; i <= 3; i++) {
             const croppedImage = req.body[`croppedImage${i}`];
             if (croppedImage && croppedImage.startsWith('data:image')) {
@@ -392,7 +366,6 @@ const editProduct = async (req, res) => {
             }
         }
 
-        // Update product data
         const updateData = {
             productName: req.body.productName,
             description: req.body.description,
@@ -431,6 +404,74 @@ const editProduct = async (req, res) => {
     }
 };
 
+const addProductOffer = async (req, res) => {
+    try {
+        const { productId, percentage, startDate, endDate } = req.body;
+
+        // Validate input
+        if (!productId || !percentage || !startDate || !endDate) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        // Parse and validate percentage
+        const offerPercentage = parseInt(percentage);
+        if (isNaN(offerPercentage) || offerPercentage < 1 || offerPercentage > 99) {
+            return res.status(400).json({ error: "Invalid percentage value" });
+        }
+
+        // Parse and validate dates
+        const startDateTime = new Date(startDate);
+        const endDateTime = new Date(endDate);
+        
+        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+            return res.status(400).json({ error: "Invalid date format" });
+        }
+
+        if (endDateTime <= startDateTime) {
+            return res.status(400).json({ error: "End date must be after start date" });
+        }
+
+        // Update product with offer
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+
+        product.offer = {
+            percentage: offerPercentage,
+            startDate: startDateTime,
+            endDate: endDateTime
+        };
+
+        // Calculate and update sale price
+        const discountAmount = (product.regularPrice * offerPercentage) / 100;
+        product.salePrice = Math.round(product.regularPrice - discountAmount);
+
+        await product.save();
+
+        res.status(200).json({ message: "Offer added successfully" });
+    } catch (error) {
+        console.error("Error adding offer:", error);
+        res.status(500).json({ error: "Failed to add offer" });
+    }
+};
+
+const getProduct = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const product = await Product.findById(productId).populate('category');
+        
+        if (!product) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+
+        res.json(product);
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        res.status(500).json({ error: "Failed to fetch product details" });
+    }
+};
+
 module.exports = {
     getProductAddPage,
     addProducts,
@@ -440,4 +481,6 @@ module.exports = {
     getEditProduct,
     editProduct,
     deleteSingleImage,
+    addProductOffer,
+    getProduct
 };

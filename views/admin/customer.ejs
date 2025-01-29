@@ -1,221 +1,276 @@
 <%- include("../../views/partials/admin/header.ejs") %>
 
 <style>
-    /* Base Styles */
-    body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        margin: 0;
-        background-color: #f8f9fa;
-        color: #2d3436;
-    }
+/* Reset and base styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
 
+.container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+/* Content Header */
+.content-header {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.content-title {
+    margin: 0;
+    color: #000;
+    font-weight: 600;
+}
+
+/* Search Bar */
+.search-bar {
+    margin-bottom: 20px;
+}
+
+.input-group {
+    display: flex;
+}
+
+.form-control {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #d0d0d0;
+    border-right: none;
+}
+
+.input-group-append .btn {
+    background-color: #000;
+    color: white;
+    border: 1px solid #000;
+    padding: 10px 15px;
+}
+
+.input-group-append .btn:hover {
+    background-color: #333;
+}
+
+/* Table Styles */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table thead {
+    background-color: #f0f0f0;
+}
+
+.table th, .table td {
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Status Badge Styles */
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 30px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.badge-blocked {
+    color: rgb(255, 0, 0);
+}
+
+.badge-active {
+    color: rgb(0, 255, 76);
+}
+
+/* Action Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    gap: 6px;
+    min-width: 100px;
+}
+
+.btn i {
+    font-size: 14px;
+}
+
+.btn-block {
+    color: rgb(255, 0, 0);
+}
+
+.btn-block:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(255, 71, 87, 0.2);
+}
+
+.btn-unblock {
+    color: rgb(47, 255, 0);
+}
+
+.btn-unblock:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(46, 213, 115, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
     .container {
-        padding: 2rem;
-        max-width: 1400px;
-        margin: 0 auto;
-    }
-
-    /* Header Styles */
-    .content-header {
-        margin-bottom: 2rem;
-        padding: 1rem 0;
-    }
-
-    .content-title {
-        font-size: 1.75rem;
-        font-weight: 600;
-        color: #2d3436;
-        margin: 0;
-    }
-
-    /* Search Bar Styles */
-    .card-header {
-        background-color: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-        margin-bottom: 2rem;
-        border: 1px solid #e9ecef;
-    }
-
-    .search-bar {
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .search-bar .input-group {
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-    }
-
-    .search-bar .form-control {
-        border-radius: 8px 0 0 8px;
-        border: 1px solid #e9ecef;
-        padding: 0.75rem 1rem;
-        font-size: 0.95rem;
-    }
-
-    .search-bar .form-control:focus {
-        box-shadow: none;
-        border-color: #007bff;
-    }
-
-    .search-bar .btn {
-        border-radius: 0 8px 8px 0;
-        padding: 0.75rem 1.5rem;
-    }
-
-    /* Table Styles */
-    .table-container {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-        overflow: hidden;
+        padding: 10px;
     }
 
     .table {
-        margin-bottom: 0;
+        font-size: 14px;
     }
 
-    .table thead th {
-        background-color: #f8f9fa;
-        border-bottom: 2px solid #e9ecef;
-        color: #6c757d;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
-        padding: 1rem;
+    .table th, .table td {
+        padding: 8px;
     }
-
-    .table td {
-        padding: 1rem;
-        vertical-align: middle;
-        border-bottom: 1px solid #e9ecef;
-        font-size: 0.95rem;
-    }
-
-    .table tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-
-    /* Button Styles */
-    .btn {
-        padding: 0.5rem 1rem;
-        font-weight: 500;
-        border-radius: 6px;
-        transition: all 0.2s ease;
-    }
-
-    .btn-block {
-        background-color: #ff7675;
-        border: none;
-        color: white;
-        width: 100px;
-    }
-
-    .btn-block:hover {
-        background-color: #ff6b6b;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(255,118,117,0.2);
-    }
-
-    .btn-unblock {
-        background-color: #00b894;
-        border: none;
-        color: white;
-        width: 100px;
-    }
-
-    .btn-unblock:hover {
-        background-color: #00a885;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,184,148,0.2);
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .container {
-            padding: 1rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        .content-title {
-            font-size: 1.5rem;
-        }
-
-        .btn {
-            width: 90px;
-            font-size: 0.85rem;
-        }
-    }
-
-    /* Loading Animation */
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    .table-container {
-        animation: fadeIn 0.3s ease-in-out;
-    }
+}
 </style>
 
-<div class="container">
-    <div class="content-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h2 class="content-title">Customers</h2>
-        </div>
-    </div>
-
-    <div class="card-header">
-        <form action="/admin/users" method="get" class="search-bar">
-            <div class="input-group">
-                <input type="text" class="form-control" value="<%=query%>" placeholder="Search customers..." name="search">
-                <div class="input-group-append">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </div>
+ <div class="container">
+        <header class="content-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="content-title">Customer Management</h2>
             </div>
-        </form>
-    </div>
+        </header>
 
-    <div class="table-container">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone No</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% for(let i=0; i < data.length; i++) { %>
-                    <tr>
-                        <td><%= data[i].name %></td>
-                        <td><%= data[i].email %></td>
-                        <td><%= data[i].phone %></td>
-                        <td>
-                            <% if(data[i].isBlocked == false) { %>
-                                <button class="btn btn-block" onclick="confirmBlock('<%= data[i]._id %>')">
-                                    <i class="fas fa-ban"></i> Block
-                                </button>
-                            <% } else { %>
-                                <button class="btn btn-unblock" onclick="confirmUnblock('<%= data[i]._id %>')">
-                                    <i class="fas fa-unlock"></i> Unblock
-                                </button>
-                            <% } %>
-                        </td>
-                    </tr>
-                <% } %>
-            </tbody>
-        </table>
+        <section class="card-header">
+            <form id="searchForm" class="search-bar">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        value="<%= locals.query || '' %>" 
+                        placeholder="Search customers by name, email, or phone..." 
+                        name="search"
+                        id="searchInput"
+                    >
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section class="table-container" id="customerTableContainer">
+            <% if (data && data.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone No</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% data.forEach(function(customer) { %>
+                            <tr>
+                                <td><%= customer.name %></td>
+                                <td><%= customer.email %></td>
+                                <td><%= customer.phone || 'N/A' %></td>
+                                <td>
+                                    <span class="badge <%= customer.isBlocked ? 'badge-blocked' : 'badge-active' %>">
+                                        <%= customer.isBlocked ? 'Blocked' : 'Active' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <% if(!customer.isBlocked) { %>
+                                        <button 
+                                            class="btn btn-block" 
+                                            onclick="confirmBlock('<%= customer._id %>')"
+                                        >
+                                            <i class="fas fa-ban"></i> Block
+                                        </button>
+                                    <% } else { %>
+                                        <button 
+                                            class="btn btn-unblock" 
+                                            onclick="confirmUnblock('<%= customer._id %>')"
+                                        >
+                                            <i class="fas fa-unlock"></i> Unblock
+                                        </button>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <div class="no-results">
+                    <p>No customers found.</p>
+                </div>
+            <% } %>
+        </section>
+
+        <% if (locals.pagination) { %>
+            <nav class="pagination-container">
+                <ul class="pagination">
+                    <% if (pagination.currentPage > 1) { %>
+                        <li>
+                            <a href="?page=<%= pagination.currentPage - 1 %>&search=<%= locals.query || '' %>">
+                                Previous
+                            </a>
+                        </li>
+                    <% } %>
+                    <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+                        <li class="<%= pagination.currentPage === i ? 'active' : '' %>">
+                            <a href="?page=<%= i %>&search=<%= locals.query || '' %>">
+                                <%= i %>
+                            </a>
+                        </li>
+                    <% } %>
+                    <% if (pagination.currentPage < pagination.totalPages) { %>
+                        <li>
+                            <a href="?page=<%= pagination.currentPage + 1 %>&search=<%= locals.query || '' %>">
+                                Next
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </nav>
+        <% } %>
     </div>
-</div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -224,8 +279,55 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    function confirmBlock(userId) {
-        Swal.fire({
+    let debounceTimer;
+
+    // Search functionality with debounce
+    document.getElementById('searchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        searchCustomers();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(searchCustomers, 500);
+    });
+
+    async function searchCustomers() {
+        const searchQuery = document.getElementById('searchInput').value;
+        try {
+            const response = await fetch(`/admin/users?search=${encodeURIComponent(searchQuery)}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'text/html'  // Changed to accept HTML response
+                }
+            });
+
+            if (!response.ok) throw new Error('Search failed');
+
+            const html = await response.text();  // Get HTML response
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            // Extract the table container from the response
+            const newTableContainer = tempDiv.querySelector('.table-container');
+            if (newTableContainer) {
+                document.getElementById('customerTableContainer').innerHTML = newTableContainer.innerHTML;
+            } else {
+                throw new Error('Could not find table in response');
+            }
+
+        } catch (error) {
+            console.error('Search error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Search Failed',
+                text: 'Failed to search customers. Please try again.'
+            });
+        }
+    }
+
+    async function confirmBlock(userId) {
+        const result = await Swal.fire({
             title: 'Block Customer',
             text: "Are you sure you want to block this customer?",
             icon: 'warning',
@@ -236,15 +338,54 @@
             cancelButtonText: 'Cancel',
             reverseButtons: true,
             borderRadius: '12px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "/admin/blockCustomer?id=" + userId;
-            }
         });
+
+        if (result.isConfirmed) {
+            try {
+                // Using the existing URL structure with query parameters
+                const response = await fetch(`/admin/blockCustomer?id=${userId}`, {
+                    method: 'GET', // Changed to GET to match existing route
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to block user');
+                
+                // Update UI immediately without waiting for reload
+                const row = document.querySelector(`button[onclick="confirmBlock('${userId}')"]`).closest('tr');
+                const statusCell = row.querySelector('td:nth-child(4)');
+                const actionCell = row.querySelector('td:last-child');
+
+                statusCell.innerHTML = '<span class="badge badge-blocked">Blocked</span>';
+                actionCell.innerHTML = `
+                    <button class="btn btn-unblock" onclick="confirmUnblock('${userId}')">
+                        <i class="fas fa-unlock"></i> Unblock
+                    </button>
+                `;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Customer Blocked',
+                    text: 'Customer has been blocked successfully',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Block error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Action Failed',
+                    text: 'Failed to block customer. Please try again.'
+                });
+            }
+        }
     }
 
-    function confirmUnblock(userId) {
-        Swal.fire({
+    async function confirmUnblock(userId) {
+        const result = await Swal.fire({
             title: 'Unblock Customer',
             text: "Are you sure you want to unblock this customer?",
             icon: 'question',
@@ -255,11 +396,50 @@
             cancelButtonText: 'Cancel',
             reverseButtons: true,
             borderRadius: '12px'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "/admin/unblockCustomer?id=" + userId;
-            }
         });
+
+        if (result.isConfirmed) {
+            try {
+                // Using the existing URL structure with query parameters
+                const response = await fetch(`/admin/unblockCustomer?id=${userId}`, {
+                    method: 'GET', // Changed to GET to match existing route
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to unblock user');
+
+                // Update UI immediately without waiting for reload
+                const row = document.querySelector(`button[onclick="confirmUnblock('${userId}')"]`).closest('tr');
+                const statusCell = row.querySelector('td:nth-child(4)');
+                const actionCell = row.querySelector('td:last-child');
+
+                statusCell.innerHTML = '<span class="badge badge-active">Active</span>';
+                actionCell.innerHTML = `
+                    <button class="btn btn-block" onclick="confirmBlock('${userId}')">
+                        <i class="fas fa-ban"></i> Block
+                    </button>
+                `;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Customer Unblocked',
+                    text: 'Customer has been unblocked successfully',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+            } catch (error) {
+                console.error('Unblock error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Action Failed',
+                    text: 'Failed to unblock customer. Please try again.'
+                });
+            }
+        }
     }
 </script>
 

@@ -1,40 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Admin Login</title>
     <style>
+        body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: url('/images/imgg1.jpg') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-container {
+    background-color:transparent; /* Semi-transparent white */
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.login-container h2 {
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+.login-container input {
+    width: calc(100% - 20px);
+    margin-bottom: 15px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+}
+
+.login-container input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.login-container button:hover {
+    background-color: #0056b3;
+}
+
+#error-message {
+    color: red;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.error-message {
+    color: red;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
        /* General Reset */
 /* General Reset */
-body, html {
+ html {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
 }
 
-/* Body Styling */
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: #f8f9fa; /* Light gray */
-}
 
-/* Login Container */
-.login-container {
-    position: relative;
-    background: white;
-    background-size: cover;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    width: 400px;
-    padding: 40px;
-    text-align: center;
-    color: #ffffff;
-}
+
 
 .login-container::before {
     content: '';
@@ -49,13 +94,7 @@ body {
 }
 
 
-/* Header Styling */
-.login-container h2 {
-    margin-bottom: 20px;
-    font-size: 2rem;
-    color: #333333; /* Dark gray */
-    font-weight: bold;
-}
+
 
 /* Input Fields */
 .login-container input {
@@ -146,12 +185,13 @@ body {
             <div class="error-message"><%= message %></div>
         <% } %>
         <form action="/admin/login" method="POST" id="loginForm">
-            <input type="text" name="email" id="email" placeholder="Username" >
-            <input type="password" name="password" id="password" placeholder="Password" >
+            <input type="text" name="email" id="email" placeholder="Username">
+            <input type="password" name="password" id="password" placeholder="Password">
             <button type="submit">Login</button>
         </form>
-        <div id="error-message" style="color:red;"></div>
+        <div id="error-message"></div>
     </div>
+    
 
     <script>
         // Adding a listener to the form's submit event

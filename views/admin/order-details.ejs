@@ -216,14 +216,15 @@
                                                     </td>
                                                     <td>
                                                         <% if (item.product && item.product.productImage && item.product.productImage.length > 0) { %>
-                                                            <img src="/uploads/product-images/<%= item.product.productImage[0] %>" alt="<%= item.product.productName %>" class="product-image">
+                                                            <img src="/uploads/product-images/<%= item.product.productImage?.[0] || 'default-image.jpg' %>" 
+                                                            class="product-image">
                                                         <% } else { %>
                                                             <div class="no-image">No Image</div>
                                                         <% } %>
                                                     </td>
-                                                    <td class="price-tag">₹<%= (item.product && typeof item.product.regularPrice === 'number') ? item.product.regularPrice.toFixed(2) : '0.00' %></td>
+                                                    <td class="price-tag">₹<%= order.totalAmount.toFixed(2)/item.quantity %></td>
                                                     <td><%= item.quantity %></td>
-                                                    <td class="price-tag"><strong>₹<%= (item.product && typeof item.product.regularPrice === 'number') ? (item.product.regularPrice * item.quantity).toFixed(2) : '0.00' %></strong></td>
+                                                    <td class="price-tag"><strong>₹<%= order.totalAmount.toFixed(2) %></strong></td>
                                                 </tr>
                                             <% }) %>
                                         </tbody>
@@ -267,6 +268,18 @@
                                     <div class="info-item">
                                         <span class="info-label">Status:</span>
                                         <span class="status-badge"><%= order.status || 'Pending' %></span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Payment Method:</span>
+                                        <span class="info-value">
+                                            <% if (order.paymentMethod === 'cod') { %>
+                                                Cash on Delivery (COD)
+                                            <% } else if (order.paymentMethod === 'razorpay') { %>
+                                                Online Payment (Razorpay)
+                                            <% } else { %>
+                                                Not specified
+                                            <% } %>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

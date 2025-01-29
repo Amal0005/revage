@@ -138,7 +138,7 @@
         display: block;
         width: 100%;
         padding: 15px;
-        background: #1e918b;
+        background: #000000;
         color: white;
         border: none;
         border-radius: 8px;
@@ -167,7 +167,7 @@
     .continue-shopping {
         display: inline-block;
         padding: 10px 20px;
-        background: #1e918b;
+        background: #000000;
         color: white;
         text-decoration: none;
         border-radius: 6px;
@@ -176,6 +176,28 @@
 
     .continue-shopping:hover {
         background: #167c76;
+    }
+
+    .quantity-info {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 5px;
+    }
+
+    .quantity-limit-reached {
+        color: #dc3545;
+    }
+
+    .out-of-stock {
+        color: #dc3545;
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+
+    .quantity-controls.disabled {
+        opacity: 0.5;
+        pointer-events: none;
     }
 </style>
 
@@ -192,13 +214,21 @@
                     <div class="item-details">
                         <h3 class="item-name"><%= item.product.productName %></h3>
                         <p class="item-price">₹<%= item.product.salePrice.toLocaleString('en-IN') %></p>
+                        <% if (item.product.quantity === 0) { %>
+                            <p class="out-of-stock">Out of Stock</p>
+                        <% } %>
                         <div class="item-actions">
-                            <div class="quantity-controls">
-                                <button class="quantity-btn" onclick="updateQuantity('<%= item.product._id %>', 'decrease')">-</button>
-                                <span class="quantity"><%= item.quantity %></span>
-                                <button class="quantity-btn" onclick="updateQuantity('<%= item.product._id %>', 'increase')">+</button>
+                            <div class="quantity-controls <%= item.product.quantity === 0 ? 'disabled' : '' %>">
+                                <button type="button" class="quantity-btn" onclick="return false;" 
+                                    onmousedown="updateQuantity(this, '<%= item.product._id %>', 'decrease'); return false;"
+                                    <%= item.product.quantity === 0 ? 'disabled' : '' %>>-</button>
+                                <span class="quantity" data-product-id="<%= item.product._id %>"><%= item.quantity %></span>
+                                <button type="button" class="quantity-btn" onclick="return false;" 
+                                    onmousedown="updateQuantity(this, '<%= item.product._id %>', 'increase'); return false;"
+                                    <%= item.product.quantity === 0 ? 'disabled' : '' %>>+</button>
                             </div>
-                            <button class="remove-btn" onclick="removeFromCart('<%= item.product._id %>')">
+                            <button type="button" class="remove-btn" onclick="return false;" 
+                                onmousedown="removeFromCart(this, '<%= item.product._id %>'); return false;">
                                 <i class="fas fa-trash"></i> Remove
                             </button>
                         </div>
@@ -233,8 +263,20 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    async function updateQuantity(productId, action) {
+    async function updateQuantity(button, productId, action) {
         try {
+            const quantityElement = document.querySelector(`.quantity[data-product-id="${productId}"]`);
+            const currentQuantity = parseInt(quantityElement.textContent);
+            let newQuantity = currentQuantity;
+
+            if (action === 'increase') {
+                newQuantity = currentQuantity + 1;
+            } else if (action === 'decrease' && currentQuantity > 1) {
+                newQuantity = currentQuantity - 1;
+            }
+
+            if (newQuantity === currentQuantity) return;
+
             const response = await fetch('/cart/update-quantity', {
                 method: 'POST',
                 headers: {
@@ -246,19 +288,43 @@
                 })
             });
 
-            if (response.ok) {
-                window.location.reload();
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to update quantity');
+            }
+
+            if (data.success) {
+                quantityElement.textContent = newQuantity;
+                
+                if (data.cartData) {
+                    document.querySelector('.summary-row:nth-child(1) span:last-child').textContent = 
+                        `₹${data.cartData.subtotal.toLocaleString('en-IN')}`;
+                    document.querySelector('.summary-row:nth-child(2) span:last-child').textContent = 
+                        `₹${data.cartData.shipping.toLocaleString('en-IN')}`;
+                    document.querySelector('.summary-row:nth-child(3) span:last-child').textContent = 
+                        `₹${data.cartData.total.toLocaleString('en-IN')}`;
+                }
+
+                const decreaseBtn = button.parentElement.querySelector('button:first-child');
+                if (decreaseBtn) {
+                    decreaseBtn.disabled = newQuantity <= 1;
+                }
             } else {
-                const data = await response.json();
-                alert(data.message || 'Failed to update quantity');
+                throw new Error(data.message || 'Failed to update quantity');
             }
         } catch (error) {
             console.error('Error updating quantity:', error);
-            alert('Failed to update quantity');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to update quantity',
+                confirmButtonColor: '#1e918b'
+            });
         }
     }
 
-    async function removeFromCart(productId) {
+    async function removeFromCart(button, productId) {
         const result = await Swal.fire({
             title: 'Are you sure?',
             text: "You want to remove this item from your cart?",
@@ -283,28 +349,54 @@
             });
 
             if (response.ok) {
-                await Swal.fire({
+                const cartItem = button.closest('.cart-item');
+                if (cartItem) {
+                    cartItem.remove();
+
+                    const remainingItems = document.querySelectorAll('.cart-item');
+                    if (remainingItems.length === 0) {
+                        const cartContainer = document.querySelector('.cart-container');
+                        if (cartContainer) {
+                            cartContainer.innerHTML = `
+                                <div class="cart-header">
+                                    <h1 class="cart-title">Shopping Cart</h1>
+                                </div>
+                                <div class="empty-cart">
+                                    <p class="empty-cart-message">Your cart is empty</p>
+                                    <a href="/shop" class="continue-shopping">Continue Shopping</a>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        const data = await response.json();
+                        if (data.cartData) {
+                            document.querySelector('.summary-row:nth-child(1) span:last-child').textContent = 
+                                `₹${data.cartData.subtotal.toLocaleString('en-IN')}`;
+                            document.querySelector('.summary-row:nth-child(2) span:last-child').textContent = 
+                                `₹${data.cartData.shipping.toLocaleString('en-IN')}`;
+                            document.querySelector('.summary-row:nth-child(3) span:last-child').textContent = 
+                                `₹${data.cartData.total.toLocaleString('en-IN')}`;
+                        }
+                    }
+                }
+
+                Swal.fire({
                     icon: 'success',
                     title: 'Removed!',
                     text: 'Item has been removed from your cart.',
                     showConfirmButton: false,
                     timer: 1500
                 });
-                window.location.reload();
             } else {
                 const data = await response.json();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: data.message || 'Failed to remove item'
-                });
+                throw new Error(data.message || 'Failed to remove item');
             }
         } catch (error) {
             console.error('Error removing item:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: 'Failed to remove item'
+                text: error.message || 'Failed to remove item'
             });
         }
     }

@@ -20,35 +20,24 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use(express.urlencoded({extended:true}))
 app.use(session({
-    secret:process.env.SESSION_SECRET,
-    resave:false,
-    saveUninitialized:true,
-    cookie:{
-        secure:false,
-        httpOnly:true,
-        maxAge:72*60*60*1000
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        secure: false,
+        httpOnly: true,
+        maxAge: 72 * 60 * 60 * 1000  // 72 hours
     }
 }))
 
-app.use(
-    session({
-        secret: 'your-secret-key', // Replace with a strong, random key in production
-        resave: false, // Don't save session if unmodified
-        saveUninitialized: true, // Save uninitialized sessions
-        cookie: {
-            secure: false, // Set true if using HTTPS
-            maxAge: 1000 * 60 * 15, // Session expires after 15 minutes
-        },
-    })
-);
-    app.use(passport.initialize())
-    app.use(passport.session())
+app.use(passport.initialize())
+app.use(passport.session())
 
     
-    app.use((req,res,next)=>{
-        res.set('cache-controll','no-store')
-        next();
-    });
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+});
 
 // Add static middleware for uploads directory
 app.use(express.static(path.join(__dirname, "public")));

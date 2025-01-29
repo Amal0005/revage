@@ -1,204 +1,204 @@
 const Product = require("../../models/productSchema");
 const Category = require("../../models/categorySchema");
 const User = require("../../models/userSchema");
+const Wishlist = require("../../models/wishlistSchema");
 
 const productDetails = async (req, res) => {
-    try {
-        const productId = req.query.id;
-        const productData = await Product.findById(productId).populate("category");
+  try {
+    const productId = req.query.id;
+    const productData = await Product.findById(productId).populate("category");
 
-        if (!productData) {
-            return res.status(404).render("page-404", { error: "Product not found" });
-        }
-
-        // Get user data if logged in
-        let userData = null;
-        if (req.session && req.session.user) {
-            userData = await User.findById(req.session.user);
-        }
-
-        const categoryOffer = productData.category?.categoryOffer || 0;
-        const productOffer = productData.productOffer || 0;
-        const totalOffer = categoryOffer + productOffer;
-
-        res.render("user/product-details", {
-            user: userData,
-            product: productData,
-            category: productData.category,
-            totalOffer: totalOffer
-        });
-    } catch (error) {
-        console.error("Error in productDetails:", error);
-        res.status(500).render("page-404", { error: "Failed to load product details" });
+    if (!productData) {
+      return res.status(404).render("page-404", { error: "Product not found" });
     }
+
+    let userData = null;
+    if (req.session && req.session.user) {
+      userData = await User.findById(req.session.user);
+    }
+
+    const categoryOffer = productData.category?.categoryOffer || 0;
+    const productOffer = productData.productOffer || 0;
+    const totalOffer = categoryOffer + productOffer;
+
+    res.render("user/product-details", {
+      user: userData,
+      product: productData,
+      category: productData.category,
+      totalOffer: totalOffer,
+    });
+  } catch (error) {
+    console.error("Error in productDetails:", error);
+    res
+      .status(500)
+      .render("page-404", { error: "Failed to load product details" });
+  }
 };
 
 const loadProductDetails = async (req, res) => {
-    try {
-        const productId = req.params.id;
-        
-        // Find product and check if it's blocked
-        const product = await Product.findOne({ 
-            _id: productId,
-            isBlocked: false 
-        }).populate('category');
+  try {
+    const productId = req.params.id;
 
-        if (!product) {
-            return res.status(404).render('error', { 
-                message: 'Product not found or is no longer available' 
-            });
-        }
+    const product = await Product.findOne({
+      _id: productId,
+      isBlocked: false,
+    }).populate("category");
 
-        // Get user data if logged in
-        let userData = null;
-        if (req.session && req.session.user) {
-            userData = await User.findById(req.session.user);
-        }
-
-        // Get related products from same category (also not blocked)
-        const relatedProducts = await Product.find({
-            category: product.category._id,
-            _id: { $ne: product._id },
-            isBlocked: false,
-            quantity: { $gt: 0 }
-        }).limit(4);
-
-        // Calculate offers
-        const categoryOffer = product.category?.categoryOffer || 0;
-        const productOffer = product.productOffer || 0;
-        const totalOffer = categoryOffer + productOffer;
-
-        res.render('user/product-details', {
-            product,
-            relatedProducts,
-            user: userData,
-            totalOffer
-        });
-
-    } catch (error) {
-        console.error('Error in loadProductDetails:', error);
-        res.status(500).render('error', { message: 'Failed to load product details' });
+    if (!product) {
+      return res.status(404).render("error", {
+        message: "Product not found or is no longer available",
+      });
     }
+
+    let userData = null;
+    if (req.session && req.session.user) {
+      userData = await User.findById(req.session.user);
+    }
+
+    const relatedProducts = await Product.find({
+      category: product.category._id,
+      _id: { $ne: product._id },
+      isBlocked: false,
+      quantity: { $gt: 0 },
+    }).limit(4);
+
+    // Get all applicable offers
+    const categoryOffer = product.category?.categoryOffer || 0;
+    const productOffer = product.productOffer || 0;
+    const specialOffer = (product.offer && product.offer.validUntil > new Date()) ? product.offer.percentage : 0;
+    
+    // Get the highest offer percentage
+    const offerPercentage = Math.max(categoryOffer, productOffer, specialOffer);
+
+    // Calculate the sale price if there's an offer
+    if (offerPercentage > 0) {
+      product.salePrice = Math.round(product.regularPrice * (1 - offerPercentage / 100));
+    }
+
+    res.render("user/product-details", {
+      product,
+      relatedProducts,
+      user: userData,
+      offerPercentage
+    });
+  } catch (error) {
+    console.error("Error in loadProductDetails:", error);
+    res.status(500).render("error", { message: "Failed to load product details" });
+  }
 };
 
+//for loading the shop page...........................................................................
+
 const loadShoppingPage = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 12;
-        const skip = (page - 1) * limit;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 12;
+    const skip = (page - 1) * limit;
 
-        // Get categories that are listed
-        const categories = await Category.find({ isListed: true });
-        const categoryIds = categories.map(category => category._id);
+    const categories = await Category.find({ isListed: true });
+    const categoryIds = categories.map((category) => category._id);
 
-        // Base query for active products
-        const baseQuery = {
-            isBlocked: false,
-            category: { $in: categoryIds },
-            quantity: { $gt: 0 }
-        };
+    const baseQuery = {
+      isBlocked: false,
+      category: { $in: categoryIds },
+      quantity: { $gt: 0 },
+    };
 
-        // Add search query if present
-        if (req.query.search) {
-            baseQuery.$or = [
-                { productName: { $regex: req.query.search, $options: 'i' } },
-                { description: { $regex: req.query.search, $options: 'i' } }
-            ];
-        }
-
-        // Add category filter if present
-        if (req.query.category) {
-            const category = await Category.findOne({ name: req.query.category });
-            if (category) {
-                baseQuery.category = category._id;
-            }
-        }
-
-        // Add price filter if present
-        if (req.query.minPrice || req.query.maxPrice) {
-            baseQuery.price = {};
-            if (req.query.minPrice) baseQuery.price.$gte = parseFloat(req.query.minPrice);
-            if (req.query.maxPrice) baseQuery.price.$lte = parseFloat(req.query.maxPrice);
-        }
-
-        // Determine sort options based on the sort parameter
-        let sortOptions = { createdAt: -1 }; // default sort
-        switch (req.query.sort) {
-            case 'price-low':
-                sortOptions = { salePrice: 1 };
-                break;
-            case 'price-high':
-                sortOptions = { salePrice: -1 };
-                break;
-            case 'name-asc':
-                sortOptions = { productName: 1 };
-                break;
-            case 'name-desc':
-                sortOptions = { productName: -1 };
-                break;
-            case 'popularity':
-                sortOptions = { totalSales: -1 };
-                break;
-            case 'rating':
-                sortOptions = { averageRating: -1 };
-                break;
-            case 'new':
-                sortOptions = { createdAt: -1 };
-                break;
-            case 'featured':
-                sortOptions = { isFeatured: -1, createdAt: -1 };
-                break;
-        }
-
-        // Get products with pagination and sorting
-        const products = await Product.find(baseQuery)
-            .populate('category')
-            .sort(sortOptions)
-            .skip(skip)
-            .limit(limit);
-
-        // Get total count for pagination
-        const totalProducts = await Product.countDocuments(baseQuery);
-        const totalPages = Math.ceil(totalProducts / limit);
-
-        // Get user data if logged in
-        let userData = null;
-        if (req.session && req.session.user) {
-            userData = await User.findById(req.session.user);
-        }
-
-        // If it's an AJAX request, return just the product grid
-        if (req.xhr || req.headers.accept.includes('application/json')) {
-            return res.render('user/partials/product-grid', {
-                products,
-                user: userData
-            });
-        }
-
-        // Otherwise, render the full page
-        res.render('user/shop', {
-            products,
-            categories,
-            currentPage: page,
-            totalPages,
-            user: userData,
-            query: req.query || {},
-            filters: {
-                minPrice: req.query.minPrice || '',
-                maxPrice: req.query.maxPrice || '',
-                category: req.query.category || '',
-                sort: req.query.sort || 'newest'
-            }
-        });
-
-    } catch (error) {
-        console.error('Error in loadShoppingPage:', error);
-        res.status(500).render('error', { message: 'Failed to load shopping page' });
+    // Get user's wishlist
+    let wishlistItems = [];
+    if (req.session.user) {
+      const wishlist = await Wishlist.findOne({ userId: req.session.user });
+      if (wishlist) {
+        wishlistItems = wishlist.products.map(item => item.productId.toString());
+      }
     }
+   console.log(wishlistItems)
+    if (req.query.search) {
+      baseQuery.$or = [
+        { productName: { $regex: req.query.search, $options: "i" } },
+      ];
+    }
+
+    if (req.query.category) {
+      const category = await Category.findOne({ name: req.query.category });
+      if (category) {
+        baseQuery.category = category._id;
+      }
+    }
+
+    let sortOptions = { createdAt: -1 }; // default sort
+    switch (req.query.sort) {
+      case "price-low":
+        sortOptions = { salePrice: 1 };
+        break;
+      case "price-high":
+        sortOptions = { salePrice: -1 };
+        break;
+      case "name-asc":
+        sortOptions = { productName: 1 };
+        break;
+      case "name-desc":
+        sortOptions = { productName: -1 };
+        break;
+      case "popularity":
+        sortOptions = { totalSales: -1 };
+        break;
+      case "rating":
+        sortOptions = { averageRating: -1 };
+        break;
+      case "new":
+        sortOptions = { createdAt: -1 };
+        break;
+      case "featured":
+        sortOptions = { isFeatured: -1, createdAt: -1 };
+        break;
+    }
+
+    const products = await Product.find(baseQuery)
+      .populate("category")
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit);
+
+    const totalProducts = await Product.countDocuments(baseQuery);
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    let userData = null;
+    if (req.session && req.session.user) {
+      userData = await User.findById(req.session.user);
+    }
+
+    if (req.xhr || req.headers.accept.includes("application/json")) {
+      return res.render("user/partials/product-grid", {
+        products,
+        user: userData,
+        wishlist: wishlistItems
+      });
+    }
+
+    res.render("user/shop", {
+      products,
+      categories,
+      currentPage: page,
+      totalPages,
+      user: userData,
+      query: req.query || {},
+      filters: {
+        category: req.query.category || "",
+        sort: req.query.sort || "newest",
+      },
+      wishlist: wishlistItems
+    });
+  } catch (error) {
+    console.error("Error in loadShoppingPage:", error);
+    res
+      .status(500)
+      .render("error", { message: "Failed to load shopping page" });
+  }
 };
 
 module.exports = {
-    productDetails,
-    loadProductDetails,
-    loadShoppingPage
+  productDetails,
+  loadProductDetails,
+  loadShoppingPage,
 };

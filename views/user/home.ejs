@@ -1,6 +1,413 @@
-<%-include("../../views/partials/user/header.ejs")%>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>REVAGE</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+      /* Button Styles */
+      
+      :root {
+  --primary-color: #3498db;
+  --secondary-color: #2c3e50;
+  --text-color: #333;
+  --light-gray: #f4f4f4;
+  --white: #fff;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar {
+  height:80px;
+  background-color:rgba(255, 255, 255, 0.458);
+  box-shadow: var(--shadow);
+  padding: 0rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.navbar .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.navbar__brand {
+  font-size: 1.5rem;
+  font-weight:500;
+  color: black;
+  text-decoration: none;
+}
+
+.navbar__toggle {
+  display: none;
+}
+
+.navbar__content {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__search {
+  position: relative;
+  margin-right: 1rem;
+}
+
+.navbar__search input {
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  border: 1px solid var(--light-gray);
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+.navbar__search button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--secondary-color);
+  cursor: pointer;
+}
+
+.navbar__search button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.navbar__links {
+  display: flex;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar__link {
+  color: var(--text-color);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  transition: color 0.3s ease;
+}
+
+.navbar__link:hover {
+  color: var(--primary-color);
+}
+
+.navbar__dropdown {
+  position: relative;
+}
+
+.navbar__dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--white);
+  box-shadow: var(--shadow);
+  border-radius: 4px;
+  padding: 0.5rem 0;
+  min-width: 150px;
+}
+
+.navbar__dropdown:hover .navbar__dropdown-menu {
+  display: block;
+}
+
+.navbar__dropdown-menu a {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: var(--text-color);
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.navbar__dropdown-menu a:hover {
+  background-color: var(--light-gray);
+}
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__user-menu {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.navbar__user-menu svg {
+  width: 16px;
+  height: 16px;
+  margin-left: 5px;
+}
+
+.navbar__icon-link {
+  color: var(--text-color);
+  margin-left: 1rem;
+  position: relative;
+}
+
+.navbar__icon-link svg {
+  width: 24px;
+  height: 24px;
+}
+
+.navbar__badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  font-size: 0.7rem;
+  padding: 2px 5px;
+  border-radius: 50%;
+}
+
+.navbar__btn {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  margin-left: 1rem;
+}
+
+.navbar__btn--outline {
+  border:black;
+  color: black;
+}
+
+.navbar__btn--outline:hover {
+  background-color:black;
+  color:white;
+}
+
+.navbar__btn--solid {
+  background-color: black;
+  color: var(--white);
+  border:black;
+}
+
+.navbar__btn--solid:hover {
+  background-color: transparent;
+  color:rgb(0, 0, 0);
+  border: black;
+}
+
+
+.cart-icon-container {
+  position: relative;
+  display: inline-block;
+}
+
+.cart-count {
+  position: absolute;
+  top: -13px;
+  right: -10px;
+  background-color: transparent;
+  color: rgb(0, 0, 0);
+  border-radius: 50%;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  min-width: 1rem;
+  text-align: center;
+  font-weight: normal;
+}
+
+.wishlist-icon-container {
+  position: relative;
+  display: inline-block;
+}
+
+.wishlist-count {
+  position: absolute;
+  top: -13px;
+  right: -12px;
+  background-color: transparent;
+  color: rgb(0, 0, 0);
+  border-radius: 50%;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  min-width: 1rem;
+  text-align: center;
+  font-weight: normal;
+}
+
+
+@media (max-width: 768px) {
+  .navbar__toggle {
+    display: block;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .navbar__toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--text-color);
+    margin: 5px 0;
+    transition: all 0.3s ease;
+  }
+
+  .navbar__content {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navbar__content.active {
+    display: flex;
+  }
+
+  .navbar__search {
+    width: 100%;
+    margin: 1rem 0;
+  }
+
+  .navbar__links {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .navbar__link {
+    padding: 0.5rem 0;
+  }
+
+  .navbar__dropdown-menu {
+    position: static;
+    box-shadow: none;
+    display: none;
+  }
+
+  .navbar__dropdown.active .navbar__dropdown-menu {
+    display: block;
+  }
+
+  .navbar__actions {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 1rem;
+  }
+
+  .navbar__icon-link {
+    margin-left: 0;
+    margin-right: 1rem;
+  }
+
+  .navbar__btn {
+    margin-left: 0;
+    margin-right: 1rem;
+  }
+}
+    </style>
+  </head>
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="navbar__brand">REVAGE</a>
+      
+      <button class="navbar__toggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      
+      <div class="navbar__content">
+        <!-- <form class="navbar__search">
+          <input type="search" placeholder="Search products..." aria-label="Search">
+          <button type="submit" aria-label="Submit search">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </button>
+        </form> -->
+        
+        <ul class="navbar__links">
+          <li><a href="/" class="navbar__link">Home</a></li>
+          <li><a href="/shop" class="navbar__link">Shop</a></li>
+          <% if (locals.categories && categories.length > 0) { %>
+            <!-- <li class="navbar__dropdown">
+              <a href="#" class="navbar__link">Categories</a>
+              <ul class="navbar__dropdown-menu">
+                <% categories.forEach(function(cat) { %>
+                  <li><a href="/shop?category=<%= cat._id %>"><%= cat.name %></a></li>
+                <% }); %>
+              </ul>
+            </li> -->
+          <% } %>
+        </ul>
+        
+        <div class="navbar__actions">
+          <% if (locals.user) { %>
+            <div class="navbar__dropdown">
+              <button class="navbar__user-menu">
+                <%= user.name %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <ul class="navbar__dropdown-menu">
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/logout">Logout</a></li>
+              </ul>
+            </div>
+            <a href="/cart" class="navbar__icon-link cart-icon-container">
+              <i class="fa-solid fa-cart-shopping"></i>
+              <% if (locals.cartCount && cartCount > 0) { %>
+                <span class="cart-count"><%= cartCount %></span>
+              <% }else{ %>
+                <span class="cart-count"><%= cartCount %></span>
+                <%}%>
+            </a>
+            <a href="/wishlist" class="navbar__icon-link wishlist-icon-container">
+              <i class="fa-solid fa-bookmark"></i>
+                            <% if (locals.wishlistCount && wishlistCount > 0) { %>
+                <span class="wishlist-count"><%= wishlistCount %></span>
+                
+              <% }else{ %>
+                <span class="wishlist-count"><%= wishlistCount %></span>
+                <%}%>
+            </a>
+          <% } else { %>
+            <a href="/login" class="navbar__btn navbar__btn--outline">Login</a>
+            <a href="/signup" class="navbar__btn navbar__btn--solid">Sign Up</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  </body>
+</html>
 <style>
-  
+
    body {
       margin: 0;
       padding: 0;
@@ -69,7 +476,6 @@
       line-height: 1.6;
     }
 
-    /* Section Footer */
     .site-footer {
       margin-top: 40px;
       font-size: 2rem;
@@ -95,7 +501,6 @@
         transform: translateY(0);
       }
     }
-  /* Hover effect for the collection title */
 .collection-title:hover {
     color: #e74c3c; /* Vibrant red on hover */
     text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Stronger shadow effect */
@@ -112,7 +517,6 @@
     transition: all 0.3s ease;
 }
 
-  /* Fade-In and Slide-In Animation */
 @keyframes fadeInSlide {
     0% {
         opacity: 0;
@@ -124,7 +528,6 @@
     }
 }
 
-/* Hover Bounce Effect */
 .lead:hover {
     color: #ffcc00;
     transform: translateY(-5px) scale(1.05);
@@ -148,7 +551,6 @@
     60% { transform: translateY(-10px); }
 }
 
-/* Hover Effect for the Button */
 .cta-button:hover {
     background-color: #000;
     color: #ffcc00;
@@ -157,7 +559,6 @@
     transition: all 0.3s ease;
 }
 
-/* New Product Card Styles */
 .product-details {
   background: #ffffff; /* White background for the card */
   /* border: 1px solid #e0e0e0; Light gray border */
@@ -444,7 +845,7 @@
 
 .offer-badge {
   background: #fff3cd;
-  color: #856404;
+  color: #333333;
   padding: 5px 10px;
   border-radius: 6px;
   font-size: 13px;
@@ -508,8 +909,10 @@
 .rating{
   margin-bottom: -10px;
 }
+.newDiecast{
+  margin-left: -1000px;
+}
 </style>
-<style link>
    
 </style>
 <div class="site-wrap">
@@ -522,9 +925,9 @@
     <h2 class="sub-title" style="font-size: 2rem; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #ffcc00; opacity: 0; animation: fadeIn 2s forwards;">The World Of DIECAST</h2>
     <h1 class="main-title" style="font-size: 3rem; font-weight: bold; margin: 20px 0; text-transform: uppercase; color: #fff; opacity: 0; animation: slideIn 1.5s forwards 0.5s;">Unmissable Arrivals</h1>
     <p class="description" style="font-size: 1.2rem; color: #dcdcdc; margin-bottom: 30px; opacity: 0; animation: fadeIn 3s forwards 1s;">Experience the future of design with our exclusive lineup.</p>
-    <a href="#discover" class="cta-button" style="display: inline-block; padding: 15px 30px; font-size: 1rem; font-weight: bold; text-transform: uppercase; color: #000; background-color: #ffcc00; border-radius: 30px; text-decoration: none; opacity: 0; animation: bounceIn 2s forwards 1.5s;">
-        Explore Now
-    </a>
+    <a href="/shop" class="cta-button" style="display: inline-block; padding: 15px 30px; font-size: 1rem; font-weight: bold; text-transform: uppercase; color: #000; background-color: #ffcc00; border-radius: 30px; text-decoration: none;">
+      Explore Now
+  </a>
 </div>
 
     </div>
@@ -539,8 +942,17 @@
           A curated lineup of classic and modern styles, handpicked for every enthusiast.
         </p>
       </div>
+
+
+
+
+
+
+
+
+
+
       <div class="row align-items-center">
-        <!-- Left Column -->
         <div class="col-md-6">
           <div class="collection-item text-center mb-4">
             <img src="images/img6.jpg" alt="Collection 1" class="img-fluid">
@@ -555,10 +967,9 @@
             <p class="text-muted">Evoke a sense of metaphorical potential.</p>
           </div>
         </div>
-        <!-- Right Column -->
         <div class="col-md-6">
           <div class="collection-item text-center">
-            <img src="images/img12.jpeg" alt="Collection 3" class="img-fluid">
+            <img src="images/img14.jpg" alt="Collection 3" class="img-fluid">
             <h4 class="collection-title">Model Car Chaos</h4>
             <p class="text-muted">
               The nostalgic and artistic vibe of the black-and-white style.
@@ -567,55 +978,77 @@
         </div>
       </div>
       
-      <div class="site-footer" >
-       
-        Discover Our DIECAST Collections
-      </div>
+      
     </div>
   </div>
 
-
-  <!-- Products Section -->
-  <div class="container">
-    <div class="row align-items-stretch">
+  <div class="site-blocks-cover inner-page py-5" data-aos="fade">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 ml-auto order-md-2 align-self-start">
+          <div class="site-block-cover-content">
+          <h2 class="newDiecast">#New  Collection 2025</h2>
+          <h1 class="newDiecast">New DIECAST</h1>
+          </div>
+        </div>
+        <div class="col-md-6 order-1 align-self-end">
+          <img src="images/img2.png" alt="Image" >
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="site-footer" >
+       
+    Discover Our DIECAST Collections
+  </div>
+  <div class="container mt-4" style="max-width: 1000px;">
+    <div class="row align-items-stretch g-3">
       <% if (newArrivals && newArrivals.length > 0) { %>
         <% newArrivals.forEach(function(product) { %>
-          <div class="col-lg-4 col-md-6"> 
-            <div class="product-card">
-              <div class="product-image">
-                <img src="/uploads/product-images/<%= product.productImage[0] %>" 
-                     class="product-image" 
-                     alt="<%= product.productName %>">
-                
-                <% if (product.productImage.length > 1) { %>
-                  <img src="/uploads/product-images/<%= product.productImage[1] %>" 
-                       class="product-image secondary-image" 
-                       alt="<%= product.productName %> - Alternative">
-                <% } %>
-              </div>
-
-              <div class="product-details">
-                <h3 class="product-name"><%= product.productName %></h3>
-                <p class="product-category">
-                  <%= product.category ? product.category.name : 'Uncategorized' %>
-                </p>
-                
-                <div class="price-container">
-                  <% if (product.productOffer || (product.category && product.category.categoryOffer)) { %>
-                    <span class="original-price">₹<%= product.regularPrice %></span>
-                    <span class="sale-price">₹<%= product.salePrice %></span>
-                    <span class="offer-badge">
-                      <%= (product.productOffer || 0) + (product.category ? product.category.categoryOffer || 0 : 0) %>% OFF
-                    </span>
-                  <% } else { %>
-                    <span class="sale-price">₹<%= product.regularPrice %></span>
-                    <!-- <p><%=product.description%></p> -->
-                     <p class="rating">⭐⭐⭐⭐</p>
+          <div class="col-lg-3 col-md-4 col-sm-6"> 
+            <a href="/product/<%= product._id %>" class="text-decoration-none">
+              <div class="product-card" style="max-height: 380px;">
+                <div class="product-image" style="height: 180px; overflow: hidden;">
+                  <img src="/uploads/product-images/<%= product.productImage[0] %>" 
+                       class="product-image w-100 h-100 object-fit-cover" 
+                       alt="<%= product.productName %>">
+                  
+                  <% if (product.productImage.length > 1) { %>
+                    <img src="/uploads/product-images/<%= product.productImage[1] %>" 
+                         class="product-image secondary-image w-100 h-100 object-fit-cover" 
+                         alt="<%= product.productName %> - Alternative">
                   <% } %>
                 </div>
-                <a href="/product/<%= product._id %>" class="btn view-details-btn">View</a>
+
+                <div class="product-details p-2">
+                  <h3 class="product-name small fw-bold text-truncate mb-1 text-dark"><%= product.productName %></h3>
+                  <p class="product-category small mb-1 text-muted">
+                    <%= product.category ? product.category.name : 'Uncategorized' %>
+                  </p>
+                  
+                  <div class="price-container mb-2">
+                    <% 
+                      const productOffer = product.offer && product.offer.percentage ? product.offer.percentage : 0;
+                      const categoryOffer = product.category && product.category.categoryOffer ? product.category.categoryOffer : 0;
+                      const bestOffer = Math.max(productOffer, categoryOffer);
+                    %>
+                    
+                    <% if (bestOffer > 0) { %>
+                      <span class="original-price small">₹<%= product.regularPrice %></span>
+                      <span class="sale-price">₹<%= product.salePrice %></span>
+                      <span class="offer-badge small">
+                        <%= bestOffer %>% OFF
+                        <% if (productOffer > categoryOffer) { %>
+                        <% } else if (categoryOffer > productOffer) { %>
+                        <% } %>
+                      </span>
+                    <% } else { %>
+                      <span class="sale-price">₹<%= product.regularPrice %></span>
+                    <% } %>
+                  </div>
+                </div>
               </div>
-            </div>
+            </a>
           </div>
         <% }); %>
       <% } else { %>
@@ -629,29 +1062,7 @@
     </div>
   </div>
 
-  <!-- Categories Section -->
-  <% if (categories && categories.length > 0) { %>
-    <div class="site-section">
-      <div class="container">
-        <div class="title-section mb-5">
-          <h2 class="text-uppercase"><span class="d-block">Shop By</span> Categories</h2>
-        </div>
-        <div class="row">
-          <% categories.forEach(function(cat) { %>
-            <div class="col-lg-3 col-md-6 mb-4">
-              <a href="/shop?category=<%= cat._id %>" class="category-card text-decoration-none">
-                <div class="card h-100">
-                  <div class="card-body text-center">
-                    <h5 class="card-title text-dark mb-0"><%= cat.name %></h5>
-                  </div>
-                </div>
-              </a>
-            </div>
-          <% }); %>
-        </div>
-      </div>
-    </div>
-  <% } %>
+  
 </div>
 
 <script>
@@ -663,202 +1074,10 @@
       }
   });
 </script>
-<%-include("../../views/partials/user/footer.ejs")%>
+<%- include("../../views/partials/user/footer") %>
   
       
-      <!-- <div class="site-section">
-        <div class="container">
-          <div class="row">
-            <div class="title-section mb-5 col-12">
-              <h2 class="text-uppercase">Popular Products</h2>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-lg-4 col-md-6 item-entry mb-4">
-              <a href="#" class="product-item md-height bg-gray d-block">
-                <img src="images/prod_2.png" alt="Image" class="img-fluid">
-              </a>
-              <h2 class="item-title"><a href="#">Gray Shoe</a></h2>
-              <strong class="item-price">$20.00</strong>
-            </div>
-            <div class="col-lg-4 col-md-6 item-entry mb-4">
-              <a href="#" class="product-item md-height bg-gray d-block">
-                <img src="images/prod_3.png" alt="Image" class="img-fluid">
-              </a>
-              <h2 class="item-title"><a href="#">Blue Shoe High Heels</a></h2>
-              <strong class="item-price"><del>$46.00</del> $28.00</strong>
-            </div>
-  
-            <div class="col-lg-4 col-md-6 item-entry mb-4">
-              <a href="#" class="product-item md-height bg-gray d-block">
-                <img src="images/model_5.png" alt="Image" class="img-fluid">
-              </a>
-              <h2 class="item-title"><a href="#">Denim Jacket</a></h2>
-              <strong class="item-price"><del>$46.00</del> $28.00</strong>
-  
-              <div class="star-rating">
-                <span class="icon-star2 text-warning"></span>
-                <span class="icon-star2 text-warning"></span>
-                <span class="icon-star2 text-warning"></span>
-                <span class="icon-star2 text-warning"></span>
-                <span class="icon-star2 text-warning"></span>
-              </div>
-  
-            </div>
-            <div class="col-lg-4 col-md-6 item-entry mb-4">
-              <a href="#" class="product-item md-height bg-gray d-block">
-                <img src="images/prod_1.png" alt="Image" class="img-fluid">
-              </a>
-              <h2 class="item-title"><a href="#">Leather Green Bag</a></h2>
-              <strong class="item-price"><del>$46.00</del> $28.00</strong>
-              <div class="star-rating">
-                <span class="icon-star2 text-warning"></span>
-                <span class="icon-star2 text-warning"></span>
-                <span class="icon-star2 text-warning"></span>
-                <span class="icon-star2 text-warning"></span>
-                <span class="icon-star2 text-warning"></span>
-              </div>
-            </div>
-  
-            <div class="col-lg-4 col-md-6 item-entry mb-4">
-              <a href="#" class="product-item md-height bg-gray d-block">
-                <img src="images/model_1.png" alt="Image" class="img-fluid">
-              </a>
-              <h2 class="item-title"><a href="#">Smooth Cloth</a></h2>
-              <strong class="item-price"><del>$46.00</del> $28.00</strong>
-            </div>
-            <div class="col-lg-4 col-md-6 item-entry mb-4">
-              <a href="#" class="product-item md-height bg-gray d-block">
-                <img src="images/model_7.png" alt="Image" class="img-fluid">
-              </a>
-              <h2 class="item-title"><a href="#">Yellow Jacket</a></h2>
-              <strong class="item-price">$58.00</strong>
-            </div>
-  
-          </div>
-        </div>
-      </div>
+     
   
       
-      <!-- <div class="site-section">
-        <div class="container">
-          <div class="row">
-            <div class="title-section text-center mb-5 col-12">
-              <h2 class="text-uppercase">Most Rated</h2>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12 block-3">
-              <div class="nonloop-block-3 owl-carousel">
-                <div class="item">
-                  <div class="item-entry">
-                    <a href="#" class="product-item md-height bg-gray d-block">
-                      <img src="images/model_1.png" alt="Image" class="img-fluid">
-                    </a>
-                    <h2 class="item-title"><a href="#">Smooth Cloth</a></h2>
-                    <strong class="item-price"><del>$46.00</del> $28.00</strong>
-                    <div class="star-rating">
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="item">
-                  <div class="item-entry">
-                    <a href="#" class="product-item md-height bg-gray d-block">
-                      <img src="images/prod_3.png" alt="Image" class="img-fluid">
-                    </a>
-                    <h2 class="item-title"><a href="#">Blue Shoe High Heels</a></h2>
-                    <strong class="item-price"><del>$46.00</del> $28.00</strong>
-  
-                    <div class="star-rating">
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="item">
-                  <div class="item-entry">
-                    <a href="#" class="product-item md-height bg-gray d-block">
-                      <img src="images/model_5.png" alt="Image" class="img-fluid">
-                    </a>
-                    <h2 class="item-title"><a href="#">Denim Jacket</a></h2>
-                    <strong class="item-price"><del>$46.00</del> $28.00</strong>
-  
-                    <div class="star-rating">
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                    </div>
-  
-                  </div>
-                </div>
-                <div class="item">
-                  <div class="item-entry">
-                    <a href="#" class="product-item md-height bg-gray d-block">
-                      <img src="images/prod_1.png" alt="Image" class="img-fluid">
-                    </a>
-                    <h2 class="item-title"><a href="#">Leather Green Bag</a></h2>
-                    <strong class="item-price"><del>$46.00</del> $28.00</strong>
-                    <div class="star-rating">
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                    </div>
-                  </div>
-                </div>
-                <div class="item">
-                  <div class="item-entry">
-                    <a href="#" class="product-item md-height bg-gray d-block">
-                      <img src="images/model_7.png" alt="Image" class="img-fluid">
-                    </a>
-                    <h2 class="item-title"><a href="#">Yellow Jacket</a></h2>
-                    <strong class="item-price">$58.00</strong>
-                    <div class="star-rating">
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                      <span class="icon-star2 text-warning"></span>
-                    </div>
-                  </div>
-                </div>
-  
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
-  
-      
-      <!-- <div class="site-blocks-cover inner-page py-5" data-aos="fade">
-        <div class="container">
-          <div class="row">
-            <div class="col-md-6 ml-auto order-md-2 align-self-start">
-              <div class="site-block-cover-content">
-              <h2 class="sub-title">#New Summer Collection 2019</h2>
-              <h1>New Shoes</h1>
-              <p><a href="#" class="btn btn-black rounded-0">Shop Now</a></p>
-              </div>
-            </div>
-            <div class="col-md-6 order-1 align-self-end">
-              <img src="images/model_6.png" alt="Image" class="img-fluid">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      </div> -->
         
-<!-- </body>

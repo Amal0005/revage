@@ -1,5 +1,6 @@
 const Cart = require('../../models/cartModel');
 const Product = require('../../models/productSchema');
+const Coupon = require("../../models/couponSchema")
 
 const loadCart = async (req, res) => {
     try {
@@ -7,7 +8,6 @@ const loadCart = async (req, res) => {
             return res.redirect('/login');
         }
 
-        // Find user's cart and populate product details
         const cart = await Cart.findOne({ user: req.session.user })
             .populate({
                 path: 'items.product',
@@ -54,32 +54,52 @@ const updateQuantity = async (req, res) => {
             return res.status(401).json({ message: 'Please login to continue' });
         }
 
-        let cart = await Cart.findOne({ user: userId });
+        const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             return res.status(404).json({ message: 'Cart not found' });
         }
 
-        const itemIndex = cart.items.findIndex(item => 
+        const cartItem = cart.items.find(item => 
             item.product.toString() === productId
         );
 
-        if (itemIndex === -1) {
+        if (!cartItem) {
             return res.status(404).json({ message: 'Product not found in cart' });
         }
 
-        // Update quantity
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        
         if (action === 'increase') {
-            cart.items[itemIndex].quantity += 1;
+            // Check maximum quantity limit
+            if (cartItem.quantity >= 5) {
+                return res.status(400).json({ message: 'Maximum quantity limit is 5 items per product' });
+            }
+            // Check if there's enough stock before increasing
+            if (cartItem.quantity + 1 > product.quantity) {
+                return res.status(400).json({ message: 'Not enough stock available' });
+            }
+            cartItem.quantity += 1;
         } else if (action === 'decrease') {
-            if (cart.items[itemIndex].quantity > 1) {
-                cart.items[itemIndex].quantity -= 1;
+            if (cartItem.quantity > 1) {
+                cartItem.quantity -= 1;
             } else {
-                cart.items.splice(itemIndex, 1);
+                // Remove item if quantity becomes 0
+                cart.items = cart.items.filter(item => 
+                    item.product.toString() !== productId
+                );
             }
         }
 
         await cart.save();
-        res.json({ success: true });
+        
+        res.json({ 
+            success: true, 
+            quantity: cartItem.quantity,
+            total: cart.items.reduce((sum, item) => sum + (item.quantity || 0), 0)
+        });
     } catch (error) {
         console.error('Error in updateQuantity:', error);
         res.status(500).json({ message: 'Failed to update quantity' });
@@ -119,52 +139,101 @@ const removeFromCart = async (req, res) => {
 };
 
 const addToCart = async (req, res) => {
-    
     try {
         const { productId, quantity = 1 } = req.body;
         const userId = req.session.user;
 
         if (!userId) {
-            return res.status(401).json({ message: 'Please login to continue' });
+            return res.status(401).json({ status: false, message: 'Please login to continue' });
         }
 
-        // Check if product exists and is available
         const product = await Product.findById(productId);
         if (!product || product.isBlocked) {
-            return res.status(404).json({ message: 'Product not available' });
+            return res.status(404).json({ status: false, message: 'Product not available' });
         }
 
-        // Find or create cart
+        // Only check if enough stock is available, don't reduce it
+        if (product.quantity < quantity) {
+            return res.status(400).json({ status: false, message: 'Not enough stock available' });
+        }
+
         let cart = await Cart.findOne({ user: userId });
         if (!cart) {
             cart = new Cart({ user: userId, items: [] });
         }
 
-        // Check if product already in cart
         const existingItem = cart.items.find(item => 
             item.product.toString() === productId
         );
 
         if (existingItem) {
-            existingItem.quantity += quantity;
-        } else {
-            cart.items.push({
-                product: productId,
-                quantity: quantity
+            return res.status(400).json({ 
+                status: false, 
+                message: 'This item is already in your cart. You can update the quantity from the cart page.'
             });
         }
 
+        cart.items.push({
+            product: productId,
+            quantity: quantity
+        });
+
         await cart.save();
-        res.json({ success: true, message: 'Product added to cart' });
+        res.json({ status: true, message: 'Product added to cart successfully' });
     } catch (error) {
         console.error('Error in addToCart:', error);
-        res.status(500).json({ message: 'Failed to add item to cart' });
+        res.status(500).json({ status: false, message: 'Failed to add product to cart' });
     }
 };
+
+const applyCoupon = async (req, res) => {
+    const { couponCode, cartTotal } = req.body;
+
+    try {
+        if (!couponCode) {
+            return res.status(400).json({ message: 'Coupon code is required' });
+        }
+
+        const coupon = await Coupon.findOne({ code: couponCode });
+        if (!coupon) {
+            return res.status(400).json({ message: 'Invalid coupon code' });
+        }
+
+        const currentDate = new Date();
+        if (new Date(coupon.expiryDate) < currentDate) {
+            return res.status(400).json({ message: 'Coupon has expired' });
+        }
+
+        if (cartTotal < coupon.minPurchase) {
+            return res.status(400).json({
+                message: `Minimum purchase of ₹${coupon.minPurchase} is required`,
+            });
+        }
+
+        let discountAmount = 0;
+        if (coupon.discountType === 'percentage') {
+            discountAmount = (cartTotal * coupon.discount) / 100;
+        } else {
+            discountAmount = coupon.discount;
+        }
+
+        const finalTotal = cartTotal - discountAmount;
+
+        console.log('Coupon applied successfully');
+        res.status(200).json({ discountAmount, finalTotal, message: 'Coupon applied successfully!' });
+    } catch (error) {
+        console.error('Unexpected error in applyCoupon:', error);
+        res.status(500).json({ message: 'Error applying coupon', error: error.message });
+    }
+};
+
+
+
 
 module.exports = {
     loadCart,
     updateQuantity,
     removeFromCart,
-    addToCart
+    addToCart,
+    applyCoupon
 };

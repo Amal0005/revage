@@ -3,7 +3,9 @@ const bcrypt=require("bcryptjs")
 const nodemailer=require("nodemailer")
 const env=require("dotenv").config();
 const session=require("express-session");
-const Order = require("../../models/orderSchema"); // Fixed import path
+const Order = require("../../models/orderSchema"); 
+const Wallet = require("../../models/walletSchema");
+
 const generateOtp=()=>{
     const digits="1234567890";
     let otp="";
@@ -53,8 +55,24 @@ const sendVerificationEmail= async(email,otp)=>{
 const userProfile = async (req, res) => {
     try {
         const userId = req.session.user;
-        const user = await User.findById(userId);
         
+        // Fetch user data with populated wallet
+        const user = await User.findById(userId).populate({
+            path: 'wallet',
+            populate: {
+                path: 'transactions',
+                options: { sort: { date: -1 } }
+            }
+        });
+                if (user.wallet?.transactions) {
+            user.wallet.transactions = user.wallet.transactions.sort((a, b) => b.date - a.date);
+        }
+        
+
+        if (!user) {
+            return res.redirect('/login');
+        }
+
         // Fetch user's orders
         const orders = await Order.find({ user: userId })
             .populate({
@@ -63,14 +81,26 @@ const userProfile = async (req, res) => {
             })
             .sort({ orderDate: -1 }); // Most recent orders first
 
-        if (!user) {
-            return res.redirect('/login');
+        // Check if user has a wallet, if not create one
+        let wallet = user.wallet;
+        if (!wallet) {
+            wallet = new Wallet({
+                user: userId,
+                balance: 0,
+                transactions: []
+            });
+            await wallet.save();
+            
+            // Update user with wallet reference
+            user.wallet = wallet;
+            await user.save();
         }
 
         res.render('user/profile', { 
             user,
             orders,
-            addresses: user.addresses || []
+            addresses: user.addresses || [],
+            wallet: wallet
         });
     } catch (error) {
         console.error('Error loading profile:', error);
@@ -95,6 +125,7 @@ const changePasswordValid = async (req, res) => {
             if (emailSent) {
                 req.session.userOtp = otp;
                 req.session.email = email;
+                req.session.otpExpiry = Date.now() + 1 * 60 * 1000; // OTP expires in 5 minutes
                 res.render("user/change-password-otp", { email: email });
                 console.log("OTP", otp);
             } else {
@@ -116,6 +147,15 @@ const changePasswordValid = async (req, res) => {
 const verifyChangePasswordOtp=async(req,res)=>{
     try {
         const enteredOtp=req.body.otp;
+        const currentTime = Date.now();
+        
+        if (!req.session.otpExpiry || currentTime > req.session.otpExpiry) {
+            return res.json({
+                success: false,
+                message: "OTP has expired. Please request a new one."
+            });
+        }
+
         if(enteredOtp===req.session.userOtp){
             // res.json({
             //     success:true,
@@ -133,6 +173,42 @@ const verifyChangePasswordOtp=async(req,res)=>{
         res.status(500).json({success:false,message:"An error occured. PLease try again later"})
     }
 }
+
+const resendOtp = async (req, res) => {
+    try {
+        const email = req.session.email;
+        if (!email) {
+            return res.json({
+                success: false,
+                message: "Session expired. Please start over."
+            });
+        }
+
+        const otp = generateOtp();
+        const emailSent = await sendVerificationEmail(email, otp);
+
+        if (emailSent) {
+            req.session.userOtp = otp;
+            req.session.otpExpiry = Date.now() + 5 * 60 * 1000; // New 5-minute expiry
+            res.json({
+                success: true,
+                message: "New OTP sent successfully"
+            });
+        } else {
+            res.json({
+                success: false,
+                message: "Failed to send OTP. Please try again."
+            });
+        }
+    } catch (error) {
+        console.error("Error in resend OTP:", error);
+        res.status(500).json({
+            success: false,
+            message: "An error occurred. Please try again later"
+        });
+    }
+};
+
 const updateProfile = async (req, res) => {
     try {
         console.log("Request body:", req.body);
@@ -395,12 +471,12 @@ const addAddress = async (req, res) => {
 const updateAddress = async (req, res) => {
     try {
         const userId = req.session.user;
-        const { addressIndex, ...addressData } = req.body;
+        const { index, address } = req.body;
 
         // Validate required fields
         const requiredFields = ['name', 'houseName', 'street', 'city', 'state', 'pincode', 'phone'];
         for (const field of requiredFields) {
-            if (!addressData[field]) {
+            if (!address[field]) {
                 return res.status(400).json({ 
                     success: false, 
                     message: `${field.charAt(0).toUpperCase() + field.slice(1)} is required` 
@@ -409,32 +485,26 @@ const updateAddress = async (req, res) => {
         }
 
         // Validate phone number (10 digits)
-        if (!/^\d{10}$/.test(addressData.phone)) {
+        if (!/^\d{10}$/.test(address.phone)) {
             return res.status(400).json({ 
                 success: false, 
                 message: "Phone number must be 10 digits" 
             });
         }
 
-        // Validate pincode (6 digits)
-        if (!/^\d{6}$/.test(addressData.pincode)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "PIN code must be 6 digits" 
-            });
-        }
+      
 
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        if (!user.addresses || !user.addresses[addressIndex]) {
+        if (!user.addresses || index < 0 || index >= user.addresses.length) {
             return res.status(404).json({ success: false, message: "Address not found" });
         }
 
         // Update the address at the specified index
-        user.addresses[addressIndex] = addressData;
+        user.addresses[index] = address;
         await user.save();
 
         res.json({ success: true, message: "Address updated successfully" });
@@ -443,29 +513,28 @@ const updateAddress = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to update address" });
     }
 };
-
 const getAddress = async (req, res) => {
     try {
-      const userId = req.session.user;
-      const addressIndex = parseInt(req.params.index);
-      
-      const user = await User.findById(userId);
-      
-      if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found' });
-      }
-      
-      if (!user.addresses || addressIndex >= user.addresses.length) {
-        return res.status(404).json({ success: false, message: 'Address not found' });
-      }
-      
-      res.json(user.addresses[addressIndex]);
+        const userId = req.session.user;
+        const addressIndex = parseInt(req.params.index);
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (!user.addresses || addressIndex < 0 || addressIndex >= user.addresses.length) {
+            return res.status(404).json({ error: 'Address not found' });
+        }
+
+        res.json(user.addresses[addressIndex]);
     } catch (error) {
-      console.error('Error fetching address:', error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
+        console.error('Error fetching address:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-  };
-  
+};
+
+
 
 const deleteAddress = async (req, res) => {
     try {
@@ -497,6 +566,7 @@ module.exports = {
     changePassword,
     changePasswordValid,
     verifyChangePasswordOtp,
+    resendOtp,
     updateProfile,
     resetPassword,
     getResetPassword,

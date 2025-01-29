@@ -26,4 +26,5 @@ const cartSchema = new Schema({
     }
 });
 
-module.exports = mongoose.model('Cart', cartSchema);
+// Check if the model exists before creating it
+module.exports = mongoose.models.Cart || mongoose.model('Cart', cartSchema);

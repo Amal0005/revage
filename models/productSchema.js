@@ -27,6 +27,16 @@ const productSchema = new Schema({
         type: Number,
         default: 0
     },
+    offer: {
+        percentage: {
+            type: Number,
+            min: 0,
+            max: 99
+        },
+        validUntil: {
+            type: Date
+        }
+    },
     quantity: {
         type: Number,
         required: true,

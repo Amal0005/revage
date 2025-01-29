@@ -1210,7 +1210,7 @@ textarea.form-control::-webkit-scrollbar-thumb:hover {
   </div>
 
   <!-- Search Bar -->
-  <div class="search-container">
+  <!-- <div class="search-container">
     <form action="/admin/category/" method="get" class="search-form">
         <input 
             type="text" 
@@ -1223,7 +1223,7 @@ textarea.form-control::-webkit-scrollbar-thumb:hover {
             <i class="fas fa-search"></i>
         </button>
     </form>
-  </div>
+  </div> -->
 
   <!-- Modern Data Table -->
   <div class="data-table-container">
@@ -1231,7 +1231,7 @@ textarea.form-control::-webkit-scrollbar-thumb:hover {
           <table class="data-table">
               <thead>
                   <tr>
-                      <th width="5%">#</th>
+                      <!-- <th width="5%">#</th> -->
                       <th width="20%">Name</th>
                       <th width="25%">Description</th>
                       <th width="10%">Offer</th>
@@ -1242,7 +1242,7 @@ textarea.form-control::-webkit-scrollbar-thumb:hover {
               <tbody>
                   <% cat.reverse().forEach((category, index)=> { %>
                       <tr>
-                          <td class="text-center"><%= index + 1 %></td>
+                          <!-- <td class="text-center"><%= index + 1 %></td> -->
                           <td>
                               <div class="category-name"><%= category.name %></div>
                           </td>
@@ -1266,7 +1266,7 @@ textarea.form-control::-webkit-scrollbar-thumb:hover {
                                           <i class="ri-price-tag-3-line"></i>
                                       </button>
                                   <% } else { %>
-                                      <button onclick="removeOffer('<%=category._id%>')" class="btn-action btn-remove">
+                                      <button onclick="removeOffer('<%=category._id%>')" class="btn-action btn-remove">Rem <br>offer
                                           <i class="ri-close-circle-line"></i>
                                       </button>
                                   <% } %>
