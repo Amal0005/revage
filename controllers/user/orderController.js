@@ -505,11 +505,123 @@ const checkout = async (req, res) => {
     }
 };
 
+const retryPayment = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        if (order.status !== 'Pending' || order.paymentStatus !== 'Pending') {
+            return res.status(400).json({
+                success: false,
+                message: 'This order cannot be retried for payment'
+            });
+        }
+
+        // Create Razorpay order
+        const razorpay = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET
+        });
+
+        const options = {
+            amount: Math.round(order.totalAmount * 100), // Razorpay expects amount in paise
+            currency: 'INR',
+            receipt: order._id.toString()
+        };
+
+        const razorpayOrder = await razorpay.orders.create(options);
+
+        // Update order with new Razorpay order ID
+        order.razorpayOrderId = razorpayOrder.id;
+        await order.save();
+
+        res.json({
+            success: true,
+            razorpayOrder
+        });
+
+    } catch (error) {
+        console.error('Error in retry payment:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to initiate payment'
+        });
+    }
+};
+
+const verifyPayment = async (req, res) => {
+    try {
+        const {
+            razorpay_payment_id,
+            razorpay_order_id,
+            razorpay_signature,
+            orderId
+        } = req.body;
+
+        // Verify signature
+        const sign = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSign = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(sign)
+            .digest("hex");
+
+        if (razorpay_signature !== expectedSign) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid payment signature'
+            });
+        }
+
+        // Update order status
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        order.status = 'Processing';
+        order.paymentStatus = 'Completed';
+        order.razorpayPaymentId = razorpay_payment_id;
+        await order.save();
+
+        // Reduce product quantities
+        for (const item of order.items) {
+            await Product.findByIdAndUpdate(
+                item.product,
+                { $inc: { quantity: -item.quantity } }
+            );
+        }
+
+        res.json({
+            success: true,
+            message: 'Payment verified successfully'
+        });
+
+    } catch (error) {
+        console.error('Error in verify payment:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to verify payment'
+        });
+    }
+};
+
 module.exports = {
   getOrderDetails,
   cancelOrder,
   trackOrder,
   returnOrder,
   downloadInvoice,
-  checkout
+  checkout,
+  retryPayment,
+  verifyPayment
 };

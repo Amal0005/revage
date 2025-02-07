@@ -222,22 +222,51 @@
                                                             <div class="no-image">No Image</div>
                                                         <% } %>
                                                     </td>
-                                                    <td class="price-tag">₹<%= order.totalAmount.toFixed(2)/item.quantity %></td>
+                                                    <td class="price-tag">₹<%= item.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></td>
                                                     <td><%= item.quantity %></td>
-                                                    <td class="price-tag"><strong>₹<%= order.totalAmount.toFixed(2) %></strong></td>
+                                                    <td class="price-tag"><strong>₹<%= (item.price * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></strong></td>
                                                 </tr>
                                             <% }) %>
                                         </tbody>
                                     </table>
                                 </div>
                                 <div class="order-summary">
+                                    <% 
+                                    let subtotalAmount = 0;
+                                    order.items.forEach(item => {
+                                        subtotalAmount += item.price * item.quantity;
+                                    });
+                                    const shippingAmount = order.shipping || 0;
+                                    
+                                    // Get coupon discount if present
+                                    let couponDiscount = 0;
+                                    let couponCode = '';
+                                    if (order.coupon && order.coupon.discountAmount) {
+                                        couponDiscount = order.coupon.discountAmount;
+                                        couponCode = order.coupon.code;
+                                    }
+                                    %>
+
                                     <div class="d-flex justify-content-between">
                                         <span class="info-label">Subtotal:</span>
-                                        <span class="info-value price-tag">₹<%= order.totalAmount.toFixed(2) %></span>
+                                        <span class="info-value price-tag">₹<%= subtotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
                                     </div>
-                                    <div class="order-total d-flex justify-content-between">
-                                        <span>Total Amount:</span>
-                                        <span class="price-tag">₹<%= order.totalAmount.toFixed(2) %></span>
+                                    
+                                    <% if (couponDiscount > 0) { %>
+                                    <div class="d-flex justify-content-between text-success">
+                                        <span class="info-label">Coupon Discount (<%= couponCode %>):</span>
+                                        <span class="info-value price-tag">-₹<%= couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                                    </div>
+                                    <% } %>
+
+                                    <div class="d-flex justify-content-between">
+                                        <span class="info-label">Shipping:</span>
+                                        <span class="info-value">Free Delivery</span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between order-total">
+                                        <span class="info-label">Total:</span>
+                                        <span class="info-value price-tag">₹<%= order.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
                                     </div>
                                 </div>
                             </div>

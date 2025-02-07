@@ -1,5 +1,6 @@
 <%- include("../../views/partials/user/header") %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <style>
 .order-details-container {
@@ -41,6 +42,7 @@
     margin-right: 0.5rem;
 }
 
+
 .status-pending {
     color: #f0ad4e;
     font-weight: 500;
@@ -68,6 +70,11 @@
 
 .status-returned {
     color: #292b2c;
+    font-weight: 500;
+}
+
+.status-return_requested {
+    color: #6f42c1;
     font-weight: 500;
 }
 
@@ -256,24 +263,22 @@
     padding-bottom: 0.8rem;
     border-bottom: 1px solid #eee;
 }
-
-.addresses-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
+.info-grid {
+    padding: 5px; /* Reduced padding */
+    border-radius: 5px; /* Slightly rounded corners */
+    max-width: 300px; /* Limits the width for a smaller look */
 }
 
-.address-card {
-    padding: 1rem;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    background: #fff;
-    position: relative;
+.info-item {
+    padding: 3px 5px; /* Smaller padding */
+    font-size: 15px; /* Reduce font size slightly */
+    margin-bottom: 3px; /* Less spacing between items */
+    line-height: 1.2; /* Reduce line spacing */
 }
 
-.address-card.selected {
-    border: 2px solid #1e918b;
-    background: #f8fffd;
+.info-value {
+    font-size: 15px; /* Smaller font size */
+    color: #000;
 }
 
 .selected-badge {
@@ -380,6 +385,31 @@
     background: rgba(0,0,0,0.5);
     z-index: 999;
 }
+
+.retry-payment {
+    margin-left: 10px;
+    padding: 5px 15px;
+    font-size: 0.9em;
+    border-radius: 5px;
+    background-color: #1e918b;
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.retry-payment:hover {
+    background-color: #167571;
+    transform: translateY(-2px);
+}
+
+.retry-payment i {
+    margin-right: 5px;
+}
+
+.status-value {
+    display: flex;
+    align-items: center;
+}
 </style>
 
 <div class="order-details-container">
@@ -391,12 +421,43 @@
             month: 'long', 
             day: 'numeric'
         }) %></p>
-        <p><strong>Status:</strong> <span class="status-<%= order.status.toLowerCase() %>"><%= order.status %></span></p>
+        <div class="order-status">
+            <div class="status-label">Order Status:</div>
+            <div class="status-value <%= order.status.toLowerCase() %>">
+                <%= order.status %>
+                <% if (order.status === 'Pending' && order.paymentStatus === 'Pending') { %>
+                    <button class="retry-payment" onclick="retryPayment('<%= order._id %>')">
+                        <i class="fas fa-sync-alt"></i> Retry Payment
+                    </button>
+                <% } %>
+            </div>
+        </div>
         <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
         <p><strong>Payment Status:</strong> <%= order.paymentStatus %></p>
     </div>
 
-    
+    <h2>Shipping Address</h2>
+        <div class="info-grid">
+            <% if (order.shippingAddress) { %>
+                <div class="info-item">
+                    <span class="info-value"><%= order.shippingAddress.fullName %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-value"><%= order.shippingAddress.address %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-value"><%= order.shippingAddress.city %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-value"><%= order.shippingAddress.pincode %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-value"><%= order.shippingAddress.phone %></span>
+                </div>
+            <% } else { %>
+                <p class="mb-0">No shipping address available</p>
+            <% } %>
+        </div>
 
     <div class="order-items">
         <h3>Order Items</h3>
@@ -423,21 +484,49 @@
             <span class="value">₹<%= order.subtotal.toLocaleString('en-IN') %></span>
         </div>
 
-        <% const discountAmount = order.subtotal - order.totalAmount + order.shipping; %>
+        <% 
+        let discountAmount = 0;
+        let discountLabel = "Discount";
+        
+        // Calculate product and category offer discounts
+        order.items.forEach(item => {
+            const regularPrice = item.product.regularPrice || item.price;
+            const salePrice = item.price;
+            if (regularPrice > salePrice) {
+                discountAmount += (regularPrice - salePrice) * item.quantity;
+            }
+        });
+
+        // Add coupon discount if applied
+        if (order.coupon && order.coupon.discountAmount) {
+            discountAmount += order.coupon.discountAmount;
+            discountLabel = order.coupon.code ? `Discount (${order.coupon.code})` : "Discount";
+        }
+        %>
+        
+        <% if (discountAmount > 0) { %>
         <div class="summary-item discount">
-            <span class="label">Discount:</span>
-            <span class="value">-₹<%= discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+            <span class="label"><%= discountLabel %>:</span>
+            <span class="value text-success">-₹<%= discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
         </div>
+        <% } %>
 
         <div class="summary-item">
             <span class="label">Shipping:</span>
-            <span class="value">₹<%= order.shipping %></span>
+            <span class="value">Free Delivery</span>
         </div>
 
         <div class="summary-item total">
             <span class="label">Total:</span>
             <span class="value">₹<%= order.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
         </div>
+
+        <% if (order.paymentMethod === 'wallet') { %>
+        <div class="summary-item payment-method">
+            <span class="label">Payment Method:</span>
+            <span class="value">Paid via Wallet</span>
+        </div>
+        <% } %>
     </div>
 
     <div class="order-actions">
@@ -459,7 +548,6 @@
         <option value="damaged">Product Damaged/Defective</option>
         <option value="wrong_item">Wrong Item Received</option>
         <option value="not_as_described">Product Not As Described</option>
-        <option value="size_issue">Size/Fit Issue</option>
         <option value="quality_issue">Quality Issue</option>
         <option value="other">Other</option>
     </select>
@@ -602,6 +690,123 @@ async function returnOrder(orderId) {
 
 function submitReturn() {
     returnOrder('<%= order._id %>');
+}
+
+function retryPayment(orderId) {
+    console.log('Initiating payment retry for order:', orderId);
+    fetch(`/retry-payment/${orderId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(async response => {
+        const data = await response.json();
+        console.log('Response status:', response.status);
+        console.log('Response data:', data);
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Server responded with an error');
+        }
+        return data;
+    })
+    .then(data => {
+        console.log('Retry payment response:', data);
+        if (data.success && data.razorpayOrder) {
+            console.log('Creating Razorpay instance with options:', {
+                key: data.key,
+                amount: data.razorpayOrder.amount,
+                currency: data.razorpayOrder.currency,
+                orderId: data.razorpayOrder.id
+            });
+            
+            const options = {
+                key: data.key,
+                amount: data.razorpayOrder.amount,
+                currency: data.razorpayOrder.currency,
+                name: 'REVAGE',
+                description: 'Order Payment',
+                order_id: data.razorpayOrder.id,
+                handler: function (response) {
+                    console.log('Payment success response:', response);
+                    // Handle successful payment
+                    fetch('/verify-payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            orderId: orderId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Payment Successful',
+                                text: 'Your payment has been processed successfully'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Payment Failed',
+                                text: data.message || 'Payment verification failed. Please contact support.'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Verification Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred during payment verification: ' + error.message
+                        });
+                    });
+                },
+                prefill: {
+                    name: '<%= order.shippingAddress ? order.shippingAddress.fullName : "" %>',
+                    contact: '<%= order.shippingAddress ? order.shippingAddress.phone : "" %>'
+                },
+                theme: {
+                    color: '#1e918b'
+                }
+            };
+
+            try {
+                console.log('Opening Razorpay payment modal');
+                const razorpay = new Razorpay(options);
+                razorpay.open();
+            } catch (error) {
+                console.error('Error opening Razorpay:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to open payment window: ' + error.message
+                });
+            }
+        } else {
+            console.error('Failed to create Razorpay order:', data);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Failed to initiate payment. Please try again.'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred: ' + error.message
+        });
+    });
 }
 </script>
 

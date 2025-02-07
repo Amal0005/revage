@@ -4,6 +4,7 @@ const Product = require("../../models/productSchema");
 const env = require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const Wallet = require("../../models/walletSchema");
+const Order = require("../../models/orderSchema");
 const nodemailer = require("nodemailer");
 
 const pageNotFound = async (req, res) => {
@@ -287,19 +288,9 @@ const logout =async(req,res)=>{
 const userProfile = async (req, res) => {
   try {
     const userId = req.session.user;
-
-    if (!userId) {
-      return res.redirect("/login");
-    }
-
-    // Fetch user data with wallet reference
-    const userData = await User.findById(userId).populate({
-      path: 'wallet',
-      populate: {
-        path: 'transactions',
-        options: { sort: { date: -1 } }
-      }
-    });
+    const userData = await User.findOne({
+      _id: userId
+    }).populate('wallet');
 
     if (!userData) {
       return res.redirect("/login");
@@ -318,9 +309,15 @@ const userProfile = async (req, res) => {
       await userData.save();
     }
 
+    // Fetch user's orders
+    const orders = await Order.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .populate('items.product');
+
     res.render("user/profile", {
       user: userData,
-      wallet: userData.wallet
+      wallet: userData.wallet,
+      orders: orders || []
     });
   } catch (error) {
     console.error("Error fetching user profile:", error.message);

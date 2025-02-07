@@ -6,10 +6,8 @@ const categoryController=require("../controllers/admin/categoryController")
 const productController=require("../controllers/admin/productController")
 const orderController = require("../controllers/admin/orderController")
 const couponController = require("../controllers/admin/couponController")
-
-
-
 const salesReportController = require("../controllers/admin/salesReportController")
+const ledgerController = require("../controllers/admin/ledgerController")
 
 const multer = require('multer');
 const storage = multer.memoryStorage(); // Stores files in memory for sharp processing
@@ -24,6 +22,9 @@ router.get("/pageerror",adminController.pageerror)
 router.get("/login", adminController.loadLogin);
 router.post("/login",adminController.login)
 router.get("/dashboard",adminAuth,adminController.loadDashboard)
+router.get("/api/category-data",adminAuth,adminController.getCategoryData);
+router.get("/api/product-data",adminAuth,adminController.getProductData);
+router.get("/api/sales-data",adminAuth,adminController.getSalesData);
 router.get("/logout",adminController.logout)
 
 router.get("/users", adminAuth,customerController.customerInfo);
@@ -50,6 +51,8 @@ router.post("/edit-product",upload.array("images",4),productController.editProdu
 router.post("/deleteImage",adminAuth,productController.deleteSingleImage)
 router.post("/add-offer", adminAuth, productController.addProductOffer)
 router.get("/get-product/:id", adminAuth, productController.getProduct)
+router.get('/add-product-offer', adminAuth, productController.addProductOffer);
+router.get('/remove-offer', adminAuth, productController.removeProductOffer);
 
 // Order management.....................................................................
 router.get("/orders", adminAuth, orderController.getAllOrders);
@@ -66,5 +69,8 @@ router.delete("/coupons/:id", adminAuth, couponController.deleteCoupon);
 
 // Sales Report.....................................................................
 router.get("/sales-report", adminAuth, salesReportController.getSalesReport);
+
+// Ledger Routes
+router.get('/ledger', adminAuth, ledgerController.getLedger);
 
 module.exports = router;

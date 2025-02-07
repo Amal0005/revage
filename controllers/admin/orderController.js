@@ -3,6 +3,44 @@ const Wallet = require('../../models/walletSchema');
 const User = require('../../models/userSchema');
 const Product = require('../../models/productSchema');
 
+// Helper function to handle wallet credit
+async function creditToWallet(userId, amount, orderId, description) {
+    try {
+        // Find or create user's wallet
+        let wallet = await Wallet.findOne({ user: userId });
+        if (!wallet) {
+            wallet = new Wallet({
+                user: userId,
+                balance: 0,
+                transactions: []
+            });
+        }
+
+        // Add the transaction
+        wallet.balance += amount;
+        wallet.transactions.push({
+            amount: amount,
+            type: 'credit',
+            description: description,
+            orderId: orderId,
+            date: new Date()
+        });
+        await wallet.save();
+
+        // Ensure user has wallet reference
+        const user = await User.findById(userId);
+        if (!user.wallet) {
+            user.wallet = wallet._id;
+            await user.save();
+        }
+
+        return wallet;
+    } catch (error) {
+        console.error('Error crediting to wallet:', error);
+        throw error;
+    }
+}
+
 const orderController = {
     getAllOrders: async (req, res) => {
         try {
@@ -43,50 +81,36 @@ const orderController = {
                     );
                 }
 
-                // Credit wallet if order was paid
-                if (order.paymentStatus === 'Completed') {
-                    // Find or create user's wallet
-                    let wallet = await Wallet.findOne({ user: order.user });
-                    console.log('Existing wallet:', wallet ? { id: wallet._id, balance: wallet.balance } : 'Not found');
-
-                    if (!wallet) {
-                        wallet = new Wallet({
-                            user: order.user,
-                            balance: 0,
-                            transactions: []
-                        });
-                        await wallet.save();
-                        console.log('Created new wallet');
+                // Handle refunds based on payment method and status
+                if (status === 'Returned') {
+                    if (order.paymentMethod === 'cod') {
+                        // For COD returns, credit to wallet
+                        await creditToWallet(
+                            order.user,
+                            order.totalAmount,
+                            order._id,
+                            `Refund for returned COD order #${order._id}`
+                        );
+                        console.log(`Credited ₹${order.totalAmount} to wallet for COD return`);
+                    } else if (order.paymentStatus === 'Completed') {
+                        // For online payments, credit to wallet
+                        await creditToWallet(
+                            order.user,
+                            order.totalAmount,
+                            order._id,
+                            `Refund for returned order #${order._id}`
+                        );
+                        console.log(`Credited ₹${order.totalAmount} to wallet for online payment return`);
                     }
-
-                    // Credit the order amount to wallet
-                    const refundAmount = order.totalAmount;
-                    wallet.balance += refundAmount;
-                    wallet.transactions.push({
-                        amount: refundAmount,
-                        type: 'credit',
-                        description: `Refund for ${status.toLowerCase()} order #${order._id}`,
-                        orderId: order._id,
-                        date: new Date()
-                    });
-                    await wallet.save();
-                    console.log('Wallet updated:', { 
-                        id: wallet._id, 
-                        newBalance: wallet.balance, 
-                        refundAmount 
-                    });
-
-                    // Update user's wallet reference if not already added
-                    const user = await User.findById(order.user);
-                    if (!user) {
-                        throw new Error('User not found');
-                    }
-
-                    if (!user.wallet) {
-                        user.wallet = wallet._id;  
-                        await user.save();
-                        console.log('Added wallet reference to user');
-                    }
+                } else if (status === 'Cancelled' && order.paymentStatus === 'Completed') {
+                    // For cancellations, only credit if payment was completed
+                    await creditToWallet(
+                        order.user,
+                        order.totalAmount,
+                        order._id,
+                        `Refund for cancelled order #${order._id}`
+                    );
+                    console.log(`Credited ₹${order.totalAmount} to wallet for cancellation`);
                 }
             }
             // For new orders, reduce quantities
@@ -124,7 +148,8 @@ const orderController = {
             const order = await Order.findById(orderId)
                 .populate({
                     path: 'user',
-                    select: 'name email'
+                    select: 'name email',
+                    options: { strictPopulate: false }
                 })
                 .populate({
                     path: 'items.product',
@@ -133,6 +158,13 @@ const orderController = {
             
             if (!order) {
                 return res.status(404).redirect('/admin/pageerror');
+            }
+
+            if (!order.user) {
+                order.user = {
+                    name: 'User not found',
+                    email: 'Email not available'
+                };
             }
             
             res.render('admin/order-details', { order });

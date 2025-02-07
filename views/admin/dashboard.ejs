@@ -33,6 +33,34 @@
         margin: 0.5rem 0 0 0;
     }
 
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .header-button {
+        padding: 0.75rem 1.5rem;
+        background: #000;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: opacity 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .header-button:hover {
+        opacity: 0.9;
+        color: #fff;
+    }
+
+    .header-button i {
+        font-size: 1rem;
+    }
+
     /* Stats Cards */
     .stats-grid {
         display: grid;
@@ -124,6 +152,22 @@
         margin: 0;
     }
 
+    /* Small Filter Styles */
+    .chart-filter {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.85rem;
+        color: #495057;
+        cursor: pointer;
+    }
+
+    .chart-filter:focus {
+        outline: none;
+        border-color: #80bdff;
+    }
+
     /* Recent Orders Table */
     .orders-section {
         background: #fff;
@@ -166,6 +210,53 @@
     .status-pending { background: #fff3e0; color: #f57c00; }
     .status-cancelled { background: #ffebee; color: #c62828; }
 
+    /* Best Selling Products and Categories */
+    .best-sellers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .best-sellers-section {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .section-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .best-sellers-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .best-sellers-table th,
+    .best-sellers-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .best-sellers-table th {
+        font-weight: 600;
+        background-color: #f8f9fa;
+    }
+
+    .best-sellers-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
     /* Responsive Design */
     @media (max-width: 1200px) {
         .charts-section {
@@ -186,6 +277,10 @@
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .best-sellers-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -194,11 +289,16 @@
     <div class="dashboard-header">
         <div class="header-title">
             <h1>Dashboard Overview</h1>
-            <p>Welcome back! Here's what's happening with your store today.</p>
+            <p>Welcome back, Admin!</p>
         </div>
         <div class="header-actions">
-            <a href="/admin/sales-report" class="btn btn-primary">
-                <i class="fas fa-file-invoice me-2"></i>Sales Report
+            <a href="/admin/sales-report" class="header-button">
+                <i class="fas fa-chart-line"></i>
+                Sales Report
+            </a>
+            <a href="/admin/ledger" class="header-button">
+                <i class="fas fa-book"></i>
+                Ledger Book
             </a>
         </div>
     </div>
@@ -208,7 +308,7 @@
         <div class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon revenue">
-                    <i class="fas fa-dollar-sign"></i>
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
                 </div>
                 <div class="stat-info">
                     <h3>₹<%= (totalRevenue || 0).toLocaleString() %></h3>
@@ -241,7 +341,7 @@
             </div>
         </div>
 
-        <div class="stat-card">
+        <!-- <div class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon earnings">
                     <i class="fas fa-chart-line"></i>
@@ -251,7 +351,7 @@
                     <p>Monthly Earnings</p>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 
     <!-- Charts Section -->
@@ -259,15 +359,27 @@
         <div class="chart-card">
             <div class="chart-header">
                 <h2 class="chart-title">Sales Analytics</h2>
+                <select id="salesFilter" class="chart-filter">
+                    <option value="daily">Daily</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
             </div>
-            <canvas id="salesChart" height="300"></canvas>
+            <canvas id="salesChart" height="200"></canvas>
         </div>
 
         <div class="chart-card">
             <div class="chart-header">
-                <h2 class="chart-title">Top Categories</h2>
+                <h2 class="chart-title">Top Selling Products</h2>
+                <select id="productFilter" class="chart-filter">
+                    <option value="daily">Last 7 Days</option>
+                    <option value="monthly">Last Month</option>
+                    <option value="yearly">Last Year</option>
+                </select>
             </div>
-            <canvas id="categoryChart" height="300"></canvas>
+            <div style="position: relative; height: 250px;">
+                <canvas id="productChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -292,7 +404,7 @@
                         <% recentOrders.forEach(order => { %>
                             <tr>
                                 <td>#<%= order._id.toString().slice(-6).toUpperCase() %></td>
-                                <td><%= order.user.name %></td>
+                                <td><%= order?.user?.name || "no name"%></td>
                                 <td><%= order.items[0].product.productName %></td>
                                 <td>₹<%= order.totalAmount %></td>
                                 <td>
@@ -311,73 +423,234 @@
             </table>
         </div>
     </div>
+
+    <!-- Best Selling Products and Categories Section -->
+    <div class="best-sellers-grid">
+        <div class="best-sellers-section">
+            <div class="section-header">
+                <h2 class="section-title">Best Selling Products</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="best-sellers-table">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Quantity Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% bestSellingProducts.forEach(product => { %>
+                            <tr>
+                                <td><%= product.name %></td>
+                                <td><%= product.quantity %></td>
+                                <td>₹<%= product.revenue.toLocaleString() %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="best-sellers-section">
+            <div class="section-header">
+                <h2 class="section-title">Best Selling Categories</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="best-sellers-table">
+                    <thead>
+                        <tr>
+                            <th>Category Name</th>
+                            <th>Quantity Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% bestSellingCategories.forEach(category => { %>
+                            <tr>
+                                <td><%= category.name %></td>
+                                <td><%= category.quantity %></td>
+                                <td>₹<%= category.revenue.toLocaleString() %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Sales Analytics Chart
     const salesCtx = document.getElementById('salesChart').getContext('2d');
-    new Chart(salesCtx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Sales',
-                data: [30, 45, 35, 50, 40, 60],
-                borderColor: '#1976d2',
-                tension: 0.4,
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        display: true,
-                        color: '#e9ecef'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
+    let salesChart = null;
 
-    // Category Chart
-    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-    new Chart(categoryCtx, {
-        type: 'doughnut',
-        data: {
-            labels: <%- JSON.stringify(categories.map(cat => cat.name)) %>,
-            datasets: [{
-                data: <%- JSON.stringify(categories.map(cat => cat.count)) %>,
-                backgroundColor: ['#1976d2', '#2e7d32', '#f57c00', '#7b1fa2', '#9c27b0', '#ed6c02']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        font: {
-                            size: 12
+    // Function to format date based on filter
+    function formatDate(date, filter) {
+        const options = {
+            daily: { day: '2-digit', month: 'short' },
+            monthly: { month: 'short', year: '2-digit' },
+            yearly: { year: 'numeric' }
+        };
+        return new Date(date).toLocaleDateString('en-US', options[filter]);
+    }
+
+    // Function to update chart
+    async function updateChart(filter) {
+        try {
+            const response = await fetch(`/admin/api/sales-data?filter=${filter}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch sales data');
+            }
+            const data = await response.json();
+            
+            const config = {
+                type: 'line',
+                data: {
+                    labels: data.map(item => formatDate(item.date, filter)),
+                    datasets: [{
+                        label: 'Sales',
+                        data: data.map(item => item.amount),
+                        borderColor: '#1976d2',
+                        backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '₹' + context.parsed.y.toLocaleString('en-IN');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value.toLocaleString('en-IN');
+                                }
+                            }
                         }
                     }
                 }
+            };
+
+            if (salesChart) {
+                salesChart.destroy();
             }
+            salesChart = new Chart(salesCtx, config);
+        } catch (error) {
+            console.error('Error updating sales chart:', error);
+            // Show error message to user
+            const chartContainer = document.getElementById('salesChart').parentElement;
+            chartContainer.innerHTML = '<p class="text-danger">Failed to load sales data. Please try again later.</p>';
         }
+    }
+
+    // Initialize with daily data
+    updateChart('daily');
+
+    // Add filter change listener
+    document.getElementById('salesFilter').addEventListener('change', (e) => {
+        updateChart(e.target.value);
+    });
+
+    // Product Chart
+    const productCtx = document.getElementById('productChart').getContext('2d');
+    let productChart = null;
+
+    // Function to update product chart
+    async function updateProductChart(filter) {
+        try {
+            const response = await fetch(`/admin/api/product-data?filter=${filter}`);
+            const productData = await response.json();
+
+            const config = {
+                type: 'pie',
+                data: {
+                    labels: productData.map(prod => prod.name),
+                    datasets: [{
+                        data: productData.map(prod => prod.totalSales),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    size: 12
+                                },
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const period = {
+                                        daily: 'in last 7 days',
+                                        monthly: 'in last month',
+                                        yearly: 'in last year'
+                                    }[filter];
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((context.parsed * 100) / total);
+                                    return `${context.label}: ${context.parsed} units sold (${percentage}%) ${period}`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 500
+                    }
+                }
+            };
+
+            if (productChart) {
+                productChart.destroy();
+            }
+            productChart = new Chart(productCtx, config);
+        } catch (error) {
+            console.error('Error updating product chart:', error);
+        }
+    }
+
+    // Initialize with daily data
+    updateProductChart('daily');
+
+    // Add filter change listener
+    document.getElementById('productFilter').addEventListener('change', (e) => {
+        updateProductChart(e.target.value);
     });
 </script>
 

@@ -11,6 +11,7 @@ const orderController = require("../controllers/user/orderController");
 const wishlistController = require("../controllers/user/wishlistController");
 const couponController=require("../controllers/user/couponController")
 const razorpayController = require('../controllers/user/paymentController.js');
+const contactController = require('../controllers/user/contactController.js');
 const { cartCount, wishlistCount } = require('../middlewares/count.js');
 console.log(cartCount)
 
@@ -22,6 +23,13 @@ router.use(wishlistCount);
 router.get("/pageNotFound",userController.pageNotFound)
 router.get("/",userController.loadHomepage)
 router.get("/signup",userController.loadSignup)
+router.get("/about", (req, res) => {
+    res.render('user/about', { user: req.session.user });
+});
+router.get("/contact", (req, res) => {
+    res.render('user/contact', { user: req.session.user });
+});
+router.post("/contact", contactController.submitContactForm);
 
 router.post("/signup", userController.signup);
 router.post("/verify-otp",userController.verifyOtp)
@@ -84,6 +92,7 @@ router.get('/order-details/:orderId', userAuth, orderController.getOrderDetails)
 router.post('/orders/:orderId/cancel', userAuth, orderController.cancelOrder);
 router.post('/orders/:orderId/return', userAuth, orderController.returnOrder);
 router.get('/order/:orderId/invoice', userAuth, orderController.downloadInvoice);
+router.post('/retry-payment/:orderId', userAuth, razorpayController.retryPayment);
 
 //Profile...............................
 router.get("/profile", userAuth, profileController.userProfile);
@@ -99,6 +108,19 @@ router.get("/forgot-password", profileController.getForgotPasswordPage);
 router.post("/forgot-email-valid", profileController.forgotEmailValid);
 router.post("/verify-passwordForgot-otp", profileController.verifyForgotPasswordOtp);
 router.get("/reset-password", profileController.getResetPasswordPage);
+
+// Password Reset Routes
+router.get('/pass-reset', userAuth, (req, res) => {
+    res.render('user/pass-reset');
+});
+
+router.post('/update-password', userAuth, async (req, res) => {
+    try {
+        await profileController.updatePassword(req, res);
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message || 'Internal server error' });
+    }
+});
 
 // Address...............................
 router.get('/get-address/:index', userAuth, profileController.getAddress);
@@ -120,6 +142,8 @@ router.post('/create-razorpay-order', userAuth, razorpayController.createRazorpa
 router.post('/verify-payment', userAuth, razorpayController.verifyPayment);
 router.get('/payment-details/:paymentId', userAuth, razorpayController.getPaymentDetails);
 
-
+// Retry payment routes
+router.post('/retry-payment/:orderId', userAuth, orderController.retryPayment);
+router.post('/verify-payment', userAuth, orderController.verifyPayment);
 
 module.exports=router;

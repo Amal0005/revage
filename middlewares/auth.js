@@ -20,7 +20,8 @@ const userAuth = (req, res, next) => {
 }
 
 const adminAuth = (req, res, next) => {
-    user.findOne({ isAdmin: true })
+    if(req.session.admin){
+        user.findOne({ isAdmin: true })
         .then(data => {
             if (data) {
                 next()
@@ -32,7 +33,13 @@ const adminAuth = (req, res, next) => {
             console.log("Error in adminAuth", error);
             res.status(500).send("Internal Server Error")
         })
+    } else {
+        res.redirect("/admin/login")
+    }
+    
 }
+
+
 
 module.exports = {
     userAuth,

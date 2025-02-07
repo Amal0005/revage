@@ -308,12 +308,24 @@
                     <span class="review-count">(25 reviews)</span>
                 </div>
                 <div class="price-section">
-                    <% if (product.salePrice && product.salePrice < product.regularPrice) { %>
+                    <% 
+                    const productOffer = product.offer && product.offer.percentage ? product.offer.percentage : 0;
+                    const categoryOffer = product.category && product.category.categoryOffer ? product.category.categoryOffer : 0;
+                    const bestOffer = Math.max(productOffer, categoryOffer);
+                    
+                    let salePrice = product.regularPrice;
+                    if (bestOffer > 0) {
+                        const discountAmount = (product.regularPrice * bestOffer) / 100;
+                        salePrice = product.regularPrice - discountAmount;
+                    }
+                    %>
+                    
+                    <% if (bestOffer > 0) { %>
                         <div class="price-row">
-                            <span class="current-price">₹<%= product.salePrice.toLocaleString('en-IN') %></span>
+                            <span class="current-price">₹<%= Math.round(salePrice).toLocaleString('en-IN') %></span>
                             <span class="original-price">₹<%= product.regularPrice.toLocaleString('en-IN') %></span>
                             <span class="offer-badge">
-                                <%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>% OFF
+                                <%= bestOffer %>% OFF
                             </span>
                         </div>
                     <% } else { %>

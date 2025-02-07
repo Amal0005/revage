@@ -52,6 +52,42 @@
         margin-top: 0.25rem;
     }
 
+    .discount-tooltip {
+        position: relative;
+        display: inline-block;
+        margin-left: 5px;
+    }
+
+    .discount-tooltip i {
+        color: #6c757d;
+        font-size: 12px;
+        cursor: help;
+    }
+
+    .discount-tooltip .tooltip-text {
+        visibility: hidden;
+        width: 200px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 4px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 12px;
+        white-space: normal;
+    }
+
+    .discount-tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
+
     .table-container {
         background: #fff;
         border-radius: 6px;
@@ -236,20 +272,28 @@
 
     <div class="stats-cards">
         <div class="stat-card">
-            <h3 class="stat-value">₹<%= (totalRevenue || 0).toLocaleString() %></h3>
-            <p class="stat-label">Revenue</p>
+            <p class="stat-value">₹<%= (totalRevenue || 0).toLocaleString('en-IN') %></p>
+            <p class="stat-label">Total Revenue</p>
         </div>
         <div class="stat-card">
-            <h3 class="stat-value"><%= totalOrders %></h3>
-            <p class="stat-label">Orders</p>
+            <p class="stat-value">₹<%= (totalDiscount || 0).toLocaleString('en-IN') %></p>
+            <p class="stat-label">Total Discounts</p>
+            <div class="discount-tooltip">
+                <i class="fas fa-info-circle"></i>
+                <span class="tooltip-text">Includes product offers, category offers, and coupon discounts</span>
+            </div>
         </div>
         <div class="stat-card">
-            <h3 class="stat-value"><%= deliveredOrders %></h3>
-            <p class="stat-label">Delivered</p>
+            <p class="stat-value"><%= totalOrders %></p>
+            <p class="stat-label">Total Orders</p>
         </div>
         <div class="stat-card">
-            <h3 class="stat-value">₹<%= (Math.round(averageOrderValue) || 0).toLocaleString() %></h3>
-            <p class="stat-label">Avg. Order</p>
+            <p class="stat-value"><%= deliveredOrders %></p>
+            <p class="stat-label">Delivered Orders</p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-value">₹<%= (Math.round(averageOrderValue) || 0).toLocaleString('en-IN') %></p>
+            <p class="stat-label">Average Order Value</p>
         </div>
     </div>
 
@@ -263,7 +307,7 @@
                     <th>Products</th>
                     <th>Payment</th>
                     <th>Amount</th>
-                    <th>Offer</th>
+                    <!-- <th>Final Amount</th> -->
                     <th>Status</th>
                 </tr>
             </thead>
@@ -281,7 +325,7 @@
                                     day: 'numeric'
                                 }) %>
                             </td>
-                            <td><%= order.user.name %></td>
+                            <td><%= order?.user?.name || "no name"%></td>
                             <td>
                                 <% order.items.forEach(item => { %>
                                     <%= item.product ? item.product.productName : 'Product Unavailable' %><br>
@@ -299,8 +343,8 @@
                             <td>
                                 <span class="amount">₹<%= (order.totalAmount || 0).toLocaleString() %></span>
                             </td>
-                            <td>
-                                <% let hasOffer = false; %>
+                            <!-- <td> -->
+                                <!-- <% let hasOffer = false; %>
                                 <% order.items.forEach(item => { %>
                                     <% if (item.appliedOffer && item.appliedOffer.percentage) { %>
                                         <span class="offer-badge"><%= item.appliedOffer.percentage %>%</span><br>
@@ -309,8 +353,10 @@
                                 <% }); %>
                                 <% if (!hasOffer) { %>
                                     <span class="no-offer">No offer</span>
-                                <% } %>
-                            </td>
+                                <% } %> -->
+                                <!-- <span class="amount">₹<%= (order.totalAmount || 0).toLocaleString() %></span> -->
+
+                            <!-- </td> -->
                             <td>
                                 <span class="status-badge <%= order.status === 'Delivered' ? 'status-delivered' : 
                                                             order.status === 'Cancelled' ? 'status-failed' :
@@ -624,23 +670,18 @@ function exportToExcel() {
         const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
         XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
 
-        // Style the summary sheet
         summarySheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }];
         summarySheet['!cols'] = [{ wch: 15 }, { wch: 20 }];
         
-        // Add Orders sheet
         const headers = Array.from(rows[0].querySelectorAll('th')).map(th => th.textContent.trim());
         const orderData = [
             headers,
             ...rows.slice(1).map(row => 
                 Array.from(row.querySelectorAll('td')).map(td => {
-                    // Clean up the text content (remove extra spaces and newlines)
                     let text = td.textContent.trim().replace(/\s+/g, ' ');
-                    // Remove the '#' from Order ID
                     if (headers[0] === 'Order ID') {
                         text = text.replace('#', '');
                     }
-                    // Format currency values
                     if (text.includes('₹')) {
                         text = text.replace('₹', '').replace(/,/g, '');
                         return parseFloat(text);
@@ -653,7 +694,6 @@ function exportToExcel() {
         const ordersSheet = XLSX.utils.aoa_to_sheet(orderData);
         XLSX.utils.book_append_sheet(workbook, ordersSheet, 'Orders');
 
-        // Auto-size columns in orders sheet
         const maxColWidths = orderData[0].map((_, i) => 
             Math.max(...orderData.map(row => 
                 row[i] ? String(row[i]).length : 0
@@ -661,7 +701,6 @@ function exportToExcel() {
         );
         ordersSheet['!cols'] = maxColWidths.map(width => ({ wch: Math.min(width + 2, 50) }));
 
-        // Generate Excel file
         const filename = `sales-report-${dateRange}.xlsx`;
         XLSX.writeFile(workbook, filename);
 
@@ -697,12 +736,10 @@ function handleDateFilterChange() {
     const filterValue = document.getElementById('dateFilter').value;
     const dateRangeContainer = document.getElementById('dateRangeContainer');
     
-    // Hide date range inputs by default
     dateRangeContainer.style.display = 'none';
     
-    // Set default dates based on filter
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of day
+    today.setHours(0, 0, 0, 0); 
     let start = new Date(today);
     let end = new Date(today);
     

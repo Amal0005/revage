@@ -341,26 +341,14 @@
       </button>
       
       <div class="navbar__content">
-        <!-- <form class="navbar__search">
-          <input type="search" placeholder="Search products..." aria-label="Search">
-          <button type="submit" aria-label="Submit search">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          </button>
-        </form> -->
+     
         
         <ul class="navbar__links">
           <li><a href="/" class="navbar__link">Home</a></li>
           <li><a href="/shop" class="navbar__link">Shop</a></li>
-          <% if (locals.categories && categories.length > 0) { %>
-            <!-- <li class="navbar__dropdown">
-              <a href="#" class="navbar__link">Categories</a>
-              <ul class="navbar__dropdown-menu">
-                <% categories.forEach(function(cat) { %>
-                  <li><a href="/shop?category=<%= cat._id %>"><%= cat.name %></a></li>
-                <% }); %>
-              </ul>
-            </li> -->
-          <% } %>
+          <li><a href="/about" class="navbar__link">About</a></li>
+          <li><a href="/contact" class="navbar__link">Contact</a></li>
+   
         </ul>
         
         <div class="navbar__actions">
@@ -1031,19 +1019,22 @@
                       const productOffer = product.offer && product.offer.percentage ? product.offer.percentage : 0;
                       const categoryOffer = product.category && product.category.categoryOffer ? product.category.categoryOffer : 0;
                       const bestOffer = Math.max(productOffer, categoryOffer);
+                      
+                      let salePrice = product.regularPrice;
+                      if (bestOffer > 0) {
+                          const discountAmount = (product.regularPrice * bestOffer) / 100;
+                          salePrice = product.regularPrice - discountAmount;
+                      }
                     %>
                     
                     <% if (bestOffer > 0) { %>
-                      <span class="original-price small">₹<%= product.regularPrice %></span>
-                      <span class="sale-price">₹<%= product.salePrice %></span>
+                      <span class="original-price small">₹<%= product.regularPrice.toLocaleString('en-IN') %></span>
+                      <span class="sale-price">₹<%= Math.round(salePrice).toLocaleString('en-IN') %></span>
                       <span class="offer-badge small">
                         <%= bestOffer %>% OFF
-                        <% if (productOffer > categoryOffer) { %>
-                        <% } else if (categoryOffer > productOffer) { %>
-                        <% } %>
                       </span>
                     <% } else { %>
-                      <span class="sale-price">₹<%= product.regularPrice %></span>
+                      <span class="sale-price">₹<%= product.regularPrice.toLocaleString('en-IN') %></span>
                     <% } %>
                   </div>
                 </div>

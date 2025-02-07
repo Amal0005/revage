@@ -25,6 +25,18 @@ const createRazorpayOrder = async (req, res) => {
             });
         }
 
+        // Fetch cart to get items
+        const cart = await Cart.findOne({ user: userId }).populate('items.product');
+        
+        // Check if any products in cart are blocked
+        const blockedProducts = cart.items.filter(item => item.product.isBlocked);
+        if (blockedProducts.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Some products in your cart are no longer available for purchase. Please remove them and try again.'
+            });
+        }
+
         const amount = Math.round(total * 100);
 
         // Shorten receipt to ensure it's under 40 characters
@@ -38,9 +50,6 @@ const createRazorpayOrder = async (req, res) => {
         };
 
         const razorpayOrder = await razorpay.orders.create(options);
-
-        // Fetch cart to get items
-        const cart = await Cart.findOne({ user: userId }).populate('items.product');
 
         const newOrder = new Order({
             user: userId,
@@ -169,8 +178,73 @@ const getPaymentDetails = async (req, res) => {
     }
 };
 
+const retryPayment = async (req, res) => {
+    try {
+        console.log('Retry payment request received for orderId:', req.params.orderId);
+        const orderId = req.params.orderId;
+        const order = await Order.findById(orderId);
+        
+        if (!order) {
+            console.log('Order not found:', orderId);
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        console.log('Order found:', {
+            id: order._id,
+            status: order.paymentStatus,
+            amount: order.totalAmount
+        });
+
+        if (order.paymentStatus !== 'Pending' && order.paymentStatus !== 'Failed') {
+            console.log('Invalid payment status for retry:', order.paymentStatus);
+            return res.status(400).json({
+                success: false,
+                message: 'Payment retry is only available for pending or failed payments'
+            });
+        }
+
+        const amount = Math.round(order.totalAmount * 100);
+        const receipt = `ord_retry_${Date.now()}`.substring(0, 40);
+
+        const options = {
+            amount,
+            currency: 'INR',
+            receipt,
+            payment_capture: 1
+        };
+
+        console.log('Creating Razorpay order with options:', options);
+        const razorpayOrder = await razorpay.orders.create(options);
+        console.log('Razorpay order created:', razorpayOrder);
+
+        // Update order with new Razorpay order ID
+        order.razorpayOrderId = razorpayOrder.id;
+        await order.save();
+        console.log('Order updated with new Razorpay order ID');
+
+        res.status(200).json({
+            success: true,
+            razorpayOrder: razorpayOrder,
+            key: process.env.RAZORPAY_KEY_ID
+        });
+
+    } catch (error) {
+        console.error('Payment Retry Error:', error);
+        console.error('Error stack:', error.stack);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to initiate payment retry',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createRazorpayOrder,
     verifyPayment,
-    getPaymentDetails
+    getPaymentDetails,
+    retryPayment
 };

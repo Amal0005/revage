@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About Us - REVAGE</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            color: #000000;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .about-section {
+            padding: 80px 0;
+            background-color: #fff;
+        }
+        
+        .about-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .about-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .about-header h1 {
+            font-size: 2.5rem;
+            color: #000;
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        
+        .about-header p {
+            color: #666;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            align-items: center;
+            margin-bottom: 80px;
+        }
+        
+        .about-content {
+            padding-right: 40px;
+        }
+        
+        .about-content h2 {
+            font-size: 2rem;
+            color: #000;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+        
+        .about-content p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        
+        .about-image {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .about-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .values-section {
+            background-color: #f8f8f8;
+            padding: 80px 0;
+        }
+        
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .value-card {
+            background: #fff;
+            padding: 40px 30px;
+            text-align: center;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .value-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .value-card i {
+            font-size: 2.5rem;
+            color: #000;
+            margin-bottom: 20px;
+        }
+        
+        .value-card h3 {
+            font-size: 1.5rem;
+            color: #000;
+            margin-bottom: 15px;
+            font-weight: 300;
+        }
+        
+        .value-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .commitment-section {
+            text-align: center;
+            padding: 80px 0;
+            background-color: #fff;
+        }
+        
+        .commitment-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #000;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 30px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            background-color: #333;
+        }
+        
+        @media (max-width: 768px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .about-content {
+                padding-right: 0;
+                order: 2;
+            }
+            
+            .about-image {
+                order: 1;
+                height: 300px;
+            }
+            
+            .values-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include("../../views/partials/user/header") %>
+
+    <div class="about-section">
+        <div class="about-container">
+            <div class="about-header">
+                <h1>About REVAGE</h1>
+                <p>Crafting sustainable fashion with timeless elegance</p>
+            </div>
+
+            <div class="about-grid">
+                <div class="about-content">
+                    <h2>Our Story</h2>
+                    <p>
+                        At REVAGE, our journey began with a deep passion for diecast cars. What started as a personal collection soon turned into a mission—to bring high-quality, detailed miniature cars to fellow enthusiasts and collectors.
+
+                        We believe diecast cars are more than just models; they are timeless pieces of automotive history, capturing the essence of classic legends, modern supercars, and everything in between. With this vision in mind, we set out to create a place where collectors can find rare, high-quality, and finely detailed diecast cars at great value.
+                        
+                        Every car in our collection is handpicked for its craftsmanship, accuracy, and uniqueness. Whether you're a lifelong collector or just starting, we are here to fuel your passion and help you build your dream collection.
+                       </p> 
+                       <p> Thank you for being part of our journey. Let’s keep the wheels rolling together! 🚗✨ </p>
+                </div>
+                <div class="about-image">
+                    <img src="/images/about.jpg" alt="REVAGE Fashion">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="values-section">
+        <div class="about-container">
+            <div class="about-header">
+                <h2>Our Values</h2>
+                <p>The principles that guide everything we do</p>
+            </div>
+
+            <div class="values-grid">
+                <div class="value-card">
+                    <i class="fas fa-leaf"></i>
+                    <h3>Sustainability</h3>
+                    <p>
+                        We're committed to using eco-friendly materials and sustainable 
+                        production methods to minimize our environmental impact.
+                    </p>
+                </div>
+                <div class="value-card">
+                    <i class="fas fa-star"></i>
+                    <h3>Quality</h3>
+                    <p>
+                        Every piece is crafted with meticulous attention to detail, 
+                        ensuring lasting quality and timeless style.
+                    </p>
+                </div>
+                <div class="value-card">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>Innovation</h3>
+                    <p>
+                        We continuously explore new sustainable materials and production 
+                        methods to lead the way in eco-friendly fashion.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="commitment-section">
+        <div class="about-container">
+            <div class="commitment-content">
+                <h2>Our Commitment</h2>
+                <p>
+                    At REVAGE, our passion goes beyond just collecting miniature cars. We're committed to providing high-quality diecast models while ensuring transparency in our sourcing, fair business practices, and a dedication to sustainability. Every purchase you make supports these values, helping us bring enthusiasts and collectors authentic, finely crafted diecast cars while fostering a responsible and passionate collector community. 🚗✨
+                </p>
+                <a href="/shop" class="cta-button">Explore Our Collection</a>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <%- include("../../views/partials/user/footer") %>
+</body>
+</html>

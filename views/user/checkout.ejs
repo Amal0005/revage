@@ -248,7 +248,6 @@
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
     }
 
     .coupon-header {
@@ -366,6 +365,11 @@
         color: #000;
     }
 
+    .free-delivery {
+        color: #1e918b;
+        font-weight: 500;
+    }
+
     @media (max-width: 768px) {
         .checkout-container {
             grid-template-columns: 1fr;
@@ -479,6 +483,32 @@
         font-size: 1.2em;
         margin-bottom: 15px;
     }
+
+    .original-price {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 0.9em;
+        margin: 2px 0;
+    }
+    
+    .offer-text {
+        color: #1e918b;
+        font-weight: 500;
+        font-size: 0.9em;
+        margin: 2px 0;
+    }
+    
+    .item-price {
+        font-weight: 600;
+        color: #000;
+        font-size: 1.1em;
+        margin: 2px 0;
+    }
+    
+    .free-delivery {
+        color: #1e918b;
+        font-weight: 500;
+    }
 </style>
 
 <div class="checkout-container">
@@ -516,7 +546,23 @@
                         <div class="item-details">
                             <h4><%= item.product.productName %></h4>
                             <p>Quantity: <%= item.quantity %></p>
-                            <p class="item-price">₹<%= (item.product.salePrice * item.quantity).toLocaleString('en-IN') %></p>
+                            <% 
+                                const productOffer = item.product.offer && item.product.offer.percentage ? item.product.offer.percentage : 0;
+                                const categoryOffer = item.product.category && item.product.category.categoryOffer ? item.product.category.categoryOffer : 0;
+                                const bestOffer = Math.max(productOffer, categoryOffer);
+                                
+                                let price = item.product.regularPrice;
+                                if (bestOffer > 0) {
+                                    const discountAmount = (item.product.regularPrice * bestOffer) / 100;
+                                    price = item.product.regularPrice - discountAmount;
+                                }
+                                const totalPrice = Math.round(price) * item.quantity;
+                            %>
+                            <% if (bestOffer > 0) { %>
+                                <p class="original-price">₹<%= (item.product.regularPrice * item.quantity).toLocaleString('en-IN') %></p>
+                                <p class="offer-text"><%= bestOffer %>% OFF</p>
+                            <% } %>
+                            <p class="item-price">₹<%= totalPrice.toLocaleString('en-IN') %></p>
                         </div>
                     </div>
                 <% }) %>
@@ -530,7 +576,7 @@
             </div>
             <div class="total-row">
                 <span>Shipping:</span>
-                <span>₹<%= cart.shipping.toLocaleString('en-IN') %></span>
+                <span class="free-delivery">Free Delivery</span>
             </div>
             <div class="total-row" id="discount-row" style="display: none;">
                 <span>Discount:</span>
@@ -583,8 +629,16 @@
                 </div>
             <% } %>
             <div class="payment-option">
-                <input type="radio" id="cod" name="paymentMethod" value="cod" checked>
-                <label for="cod">Cash on Delivery (COD)</label>
+                <% if (cart.total <= 1000) { %>
+                    <input type="radio" id="cod" name="paymentMethod" value="cod" checked>
+                    <label for="cod">Cash on Delivery (COD)</label>
+                <% } else { %>
+                    <input type="radio" id="cod" name="paymentMethod" value="cod" disabled>
+                    <label for="cod" class="text-muted">
+                        Cash on Delivery (COD) 
+                        <span class="text-danger">(Not available for orders above ₹1,000)</span>
+                    </label>
+                <% } %>
             </div>
             <div class="payment-option razorpay">
                 <input type="radio" id="razorpay" name="paymentMethod" value="razorpay">
@@ -1227,6 +1281,35 @@ window.onclick = function(event) {
         hideAddAddressModal();
     }
 }
+
+function updatePaymentOptions() {
+    const total = parseCurrency(document.getElementById('final-total').textContent);
+    const codRadio = document.getElementById('cod');
+    const codLabel = codRadio.nextElementSibling;
+    
+    if (total > 1000) {
+        codRadio.checked = false;
+        codRadio.disabled = true;
+        codLabel.innerHTML = 'Cash on Delivery (COD) <span class="text-danger">(Not available for orders above ₹1,000)</span>';
+        // If COD was selected, switch to Razorpay
+        if (codRadio.checked) {
+            document.getElementById('razorpay').checked = true;
+        }
+    } else {
+        codRadio.disabled = false;
+        codLabel.innerHTML = 'Cash on Delivery (COD)';
+    }
+}
+
+const existingApplyCoupon = window.applyCoupon;
+window.applyCoupon = async function() {
+    await existingApplyCoupon.apply(this, arguments);
+    updatePaymentOptions();
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    updatePaymentOptions();
+});
 
 fetchCoupons();
 </script>

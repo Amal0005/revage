@@ -3,6 +3,32 @@ const Category = require("../../models/categorySchema");
 const User = require("../../models/userSchema");
 const Wishlist = require("../../models/wishlistSchema");
 
+// Helper function to calculate final price with offers
+const calculatePriceWithOffers = (product) => {
+  let offerPercentage = 0;
+  
+  // Check for product offer
+  if (product.productOffer && product.productOffer > 0) {
+    offerPercentage = product.productOffer;
+  }
+  
+  // Check for category offer
+  if (product.category && product.category.categoryOffer && product.category.categoryOffer > offerPercentage) {
+    offerPercentage = product.category.categoryOffer;
+  }
+
+  const regularPrice = product.regularPrice;
+  const finalPrice = offerPercentage > 0 
+    ? Math.round(regularPrice * (1 - offerPercentage/100)) 
+    : regularPrice;
+
+  return {
+    regularPrice,
+    finalPrice,
+    offerPercentage
+  };
+};
+
 const productDetails = async (req, res) => {
   try {
     const productId = req.query.id;
@@ -23,9 +49,12 @@ const productDetails = async (req, res) => {
 
     res.render("user/product-details", {
       user: userData,
-      product: productData,
+      product: {
+        ...productData.toObject(),
+        ...priceDetails
+      },
       category: productData.category,
-      totalOffer: totalOffer,
+      totalOffer: priceDetails.offerPercentage
     });
   } catch (error) {
     console.error("Error in productDetails:", error);
@@ -62,24 +91,16 @@ const loadProductDetails = async (req, res) => {
       quantity: { $gt: 0 },
     }).limit(4);
 
-    // Get all applicable offers
-    const categoryOffer = product.category?.categoryOffer || 0;
-    const productOffer = product.productOffer || 0;
-    const specialOffer = (product.offer && product.offer.validUntil > new Date()) ? product.offer.percentage : 0;
-    
-    // Get the highest offer percentage
-    const offerPercentage = Math.max(categoryOffer, productOffer, specialOffer);
-
-    // Calculate the sale price if there's an offer
-    if (offerPercentage > 0) {
-      product.salePrice = Math.round(product.regularPrice * (1 - offerPercentage / 100));
-    }
+    const priceDetails = calculatePriceWithOffers(product);
 
     res.render("user/product-details", {
-      product,
+      product: {
+        ...product.toObject(),
+        ...priceDetails
+      },
       relatedProducts,
       user: userData,
-      offerPercentage
+      offerPercentage: priceDetails.offerPercentage
     });
   } catch (error) {
     console.error("Error in loadProductDetails:", error);
@@ -112,7 +133,7 @@ const loadShoppingPage = async (req, res) => {
         wishlistItems = wishlist.products.map(item => item.productId.toString());
       }
     }
-   console.log(wishlistItems)
+
     if (req.query.search) {
       baseQuery.$or = [
         { productName: { $regex: req.query.search, $options: "i" } },
@@ -155,10 +176,18 @@ const loadShoppingPage = async (req, res) => {
     }
 
     const products = await Product.find(baseQuery)
-      .populate("category")
+      .populate('category')
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
+
+    const productsWithPrices = products.map(product => {
+      const priceDetails = calculatePriceWithOffers(product);
+      return {
+        ...product.toObject(),
+        ...priceDetails
+      };
+    });
 
     const totalProducts = await Product.countDocuments(baseQuery);
     const totalPages = Math.ceil(totalProducts / limit);
@@ -170,14 +199,14 @@ const loadShoppingPage = async (req, res) => {
 
     if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.render("user/partials/product-grid", {
-        products,
+        products: productsWithPrices,
         user: userData,
         wishlist: wishlistItems
       });
     }
 
     res.render("user/shop", {
-      products,
+      products: productsWithPrices,
       categories,
       currentPage: page,
       totalPages,

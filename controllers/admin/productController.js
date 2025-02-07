@@ -456,6 +456,19 @@ const addProductOffer = async (req, res) => {
     }
 };
 
+const removeProductOffer = async (req, res) => {
+    try {
+        const productId = req.query.id;
+        await Product.findByIdAndUpdate(productId, {
+            $unset: { offer: 1 }
+        });
+        res.redirect('/admin/products');
+    } catch (error) {
+        console.error('Error removing product offer:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 const getProduct = async (req, res) => {
     try {
         const productId = req.params.id;
@@ -482,5 +495,6 @@ module.exports = {
     editProduct,
     deleteSingleImage,
     addProductOffer,
+    removeProductOffer,
     getProduct
 };

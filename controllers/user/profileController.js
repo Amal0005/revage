@@ -323,45 +323,49 @@ const getForgotPasswordPage=async(req,res)=>{
     }
 }
 
-const forgotEmailValid=async(req,res)=>{
+const forgotEmailValid = async (req, res) => {
     try {
-        const {email}=req.body
-        const findUser=await User.findOne({email:email})
-        if(findUser){
-            const otp=generateOtp()
-            const emailSent=await sendVerificationEmail(email,otp)
-            if(emailSent){
-                req.session.userOtp=otp
-                req.session.email=email
-                res.render("user/forgotPassword-otp")
-          console.log("otp:",otp);
-          
-            }else{
+        const { email } = req.body;
+        const findUser = await User.findOne({ email: email });
+        if (findUser) {
+            const otp = generateOtp();
+            const emailSent = await sendVerificationEmail(email, otp);
+            if (emailSent) {
+                req.session.userOtp = otp;
+                req.session.email = email;
+                // Set OTP expiration time (2 minutes from now)
+                req.session.otpExpiry = Date.now() + (2 * 60 * 1000);
+                res.render("user/forgotPassword-otp");
+                console.log("otp:", otp);
+            } else {
                 res.json({
-                    success:false,
-                    message:"Failed to send OTP.please try again"
-                })
+                    success: false,
+                    message: "Failed to send OTP. Please try again"
+                });
             }
-        }else{
-            res.render("user/forgot-password",{
-                message:"User with this email does exists"
-            })
+        } else {
+            res.render("user/forgot-password", {
+                message: "User with this email does not exist"
+            });
         }
     } catch (error) {
-        res.redirect("/pageNotFound")
+        res.redirect("/pageNotFound");
     }
-}
+};
 
-// Controller (profileController.js)
 const verifyForgotPasswordOtp = async (req, res) => {
     try {
         const enteredOtp = req.body.otp;
-        console.log('Entered OTP:', enteredOtp); // Debug log
-        console.log('Session OTP:', req.session.userOtp); // Debug log
-        console.log('OTP Types:', {
-            enteredOtp: typeof enteredOtp,
-            sessionOtp: typeof req.session.userOtp
-        }); // Debug log for types
+        console.log('Entered OTP:', enteredOtp);
+        console.log('Session OTP:', req.session.userOtp);
+
+        // Check if OTP has expired
+        if (!req.session.otpExpiry || Date.now() > req.session.otpExpiry) {
+            return res.json({
+                success: false,
+                message: 'OTP has expired. Please request a new one.'
+            });
+        }
 
         // Convert both OTPs to strings for comparison
         if (String(enteredOtp) === String(req.session.userOtp)) {
@@ -371,11 +375,11 @@ const verifyForgotPasswordOtp = async (req, res) => {
             return res.json({
                 success: true,
                 redirectUrl: "/reset-password"
-            })
+            });
         } else {
             return res.json({
                 success: false,
-                message: 'OTP not matching'
+                message: 'Invalid OTP'
             });
         }
     } catch (error) {
@@ -561,6 +565,47 @@ const deleteAddress = async (req, res) => {
     }
 };
 
+async function updatePassword(req, res) {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+        const userId = req.session.user;
+
+        // Get user from database
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Verify current password
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+        }
+
+        // Validate new password
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ success: false, message: 'New passwords do not match' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long' });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update password in database
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Error updating password:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     userProfile,
     changePassword,
@@ -577,6 +622,7 @@ module.exports = {
     getResetPasswordPage,
     addAddress,
     updateAddress,
+    getAddress,
     deleteAddress,
-    getAddress
+    updatePassword
 };

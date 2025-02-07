@@ -3,10 +3,9 @@ const Order = require("../../models/orderSchema");
 const getSalesReport = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 10; // Number of orders per page
+        const limit = 15;
         const skip = (page - 1) * limit;
 
-        // Handle date filtering
         let dateFilter = {};
         const { startDate, endDate } = req.query;
 
@@ -19,11 +18,9 @@ const getSalesReport = async (req, res) => {
             };
         }
 
-        // Get total count for pagination with date filter
         const totalOrders = await Order.countDocuments(dateFilter);
         const totalPages = Math.ceil(totalOrders / limit);
 
-        // Get paginated orders with date filter
         const orders = await Order.find(dateFilter)
             .populate('user', 'name')
             .populate({
@@ -34,15 +31,60 @@ const getSalesReport = async (req, res) => {
             .skip(skip)
             .limit(limit);
 
-        // Get total stats (filtered by date if specified)
-        const allOrders = await Order.find(dateFilter).select('totalAmount status paymentMethod paymentStatus orderDate');
-        const totalRevenue = allOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        const allOrders = await Order.find(dateFilter)
+            .populate({
+                path: 'items.product',
+                select: 'productName offer regularPrice category',
+                populate: {
+                    path: 'category',
+                    select: 'categoryOffer'
+                }
+            })
+            .select('totalAmount subtotal status paymentMethod paymentStatus orderDate items coupon');
+        
+        // Calculate total revenue excluding cancelled and returned orders
+        const totalRevenue = allOrders.reduce((sum, order) => {
+            if (order.status !== 'Cancelled' && order.status !== 'Returned') {
+                return sum + (order.totalAmount || 0);
+            }
+            return sum;
+        }, 0);
+
+        // Calculate total discount including product offers, category offers, and coupons
+        const totalDiscount = allOrders.reduce((sum, order) => {
+            if (order.status !== 'Cancelled' && order.status !== 'Returned') {
+                let orderDiscount = 0;
+
+                // Calculate product and category offer discounts
+                order.items.forEach(item => {
+                    if (item.product) {
+                        const regularPrice = item.product.regularPrice || 0;
+                        const productOffer = item.product.offer ? item.product.offer.percentage : 0;
+                        const categoryOffer = item.product.category ? item.product.category.categoryOffer : 0;
+                        const bestOffer = Math.max(productOffer, categoryOffer);
+                        
+                        if (bestOffer > 0) {
+                            const discountAmount = (regularPrice * bestOffer) / 100;
+                            orderDiscount += discountAmount * item.quantity;
+                        }
+                    }
+                });
+
+                // Add coupon discount if any
+                if (order.coupon && order.coupon.discount) {
+                    orderDiscount += order.coupon.discount;
+                }
+
+                return sum + orderDiscount;
+            }
+            return sum;
+        }, 0);
+
         const deliveredOrders = allOrders.filter(order => order.status === 'Delivered').length;
         const averageOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders) : 0;
 
-        // Get payment method statistics
         const paymentStats = allOrders.reduce((acc, order) => {
-            const method = order.paymentMethod || 'COD'; // Default to COD if not specified
+            const method = order.paymentMethod || 'COD';
             acc[method] = (acc[method] || 0) + 1;
             return acc;
         }, {});
@@ -53,6 +95,7 @@ const getSalesReport = async (req, res) => {
             totalPages,
             totalOrders,
             totalRevenue,
+            totalDiscount,
             deliveredOrders,
             averageOrderValue,
             paymentStats,

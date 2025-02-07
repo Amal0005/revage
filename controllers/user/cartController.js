@@ -1,7 +1,6 @@
 const Cart = require('../../models/cartModel');
 const Product = require('../../models/productSchema');
 const Coupon = require("../../models/couponSchema")
-
 const loadCart = async (req, res) => {
     try {
         if (!req.session.user) {
@@ -11,7 +10,11 @@ const loadCart = async (req, res) => {
         const cart = await Cart.findOne({ user: req.session.user })
             .populate({
                 path: 'items.product',
-                select: 'productName productImage salePrice'
+                select: 'productName productImage regularPrice offer category isBlocked',
+                populate: {
+                    path: 'category',
+                    select: 'categoryOffer categoryName'
+                }
             });
 
         if (!cart) {
@@ -21,28 +24,51 @@ const loadCart = async (req, res) => {
             });
         }
 
-        // Calculate totals
+        const filteredCart = filterBlockedProducts(cart);
+
         let subtotal = 0;
-        cart.items.forEach(item => {
-            subtotal += item.product.salePrice * item.quantity;
+        filteredCart.items.forEach(item => {
+            const product = item.product;
+            const productOffer = product.offer && product.offer.percentage ? product.offer.percentage : 0;
+            const categoryOffer = product.category && product.category.categoryOffer ? product.category.categoryOffer : 0;
+            const bestOffer = Math.max(productOffer, categoryOffer);
+            
+            let price = product.regularPrice;
+            if (bestOffer > 0) {
+                const discountAmount = (product.regularPrice * bestOffer) / 100;
+                price = product.regularPrice - discountAmount;
+            }
+            
+            subtotal += Math.round(price) * item.quantity;
         });
 
-        const shipping = subtotal > 0 ? 40 : 0; // Example shipping cost
+        const shipping = 0; // Free delivery
         const total = subtotal + shipping;
 
         res.render('user/cart', {
             cart: {
-                items: cart.items,
+                items: filteredCart.items,
                 subtotal,
                 shipping,
                 total
             },
             user: req.session.user
+
         });
     } catch (error) {
         console.error('Error in loadCart:', error);
         res.status(500).render('page-404', { error: 'Failed to load cart' });
     }
+};
+
+const filterBlockedProducts = (cart) => {
+    if (!cart) return null;
+    
+    const filteredItems = cart.items.filter(item => !item.product.isBlocked);
+    return {
+        ...cart.toObject(),
+        items: filteredItems
+    };
 };
 
 const updateQuantity = async (req, res) => {
@@ -62,6 +88,7 @@ const updateQuantity = async (req, res) => {
         const cartItem = cart.items.find(item => 
             item.product.toString() === productId
         );
+        
 
         if (!cartItem) {
             return res.status(404).json({ message: 'Product not found in cart' });
@@ -73,11 +100,9 @@ const updateQuantity = async (req, res) => {
         }
         
         if (action === 'increase') {
-            // Check maximum quantity limit
             if (cartItem.quantity >= 5) {
                 return res.status(400).json({ message: 'Maximum quantity limit is 5 items per product' });
             }
-            // Check if there's enough stock before increasing
             if (cartItem.quantity + 1 > product.quantity) {
                 return res.status(400).json({ message: 'Not enough stock available' });
             }
@@ -86,7 +111,6 @@ const updateQuantity = async (req, res) => {
             if (cartItem.quantity > 1) {
                 cartItem.quantity -= 1;
             } else {
-                // Remove item if quantity becomes 0
                 cart.items = cart.items.filter(item => 
                     item.product.toString() !== productId
                 );
@@ -226,9 +250,6 @@ const applyCoupon = async (req, res) => {
         res.status(500).json({ message: 'Error applying coupon', error: error.message });
     }
 };
-
-
-
 
 module.exports = {
     loadCart,

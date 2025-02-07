@@ -67,11 +67,117 @@
         border-radius: 12px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
+    .header-filter-section {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+    }
+
+    .filter-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .filter-header {
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    .filter-icon {
+        color: #000;
+        margin-right: 8px;
+        font-size: 14px;
+    }
+
+    .filter-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #495057;
+        margin: 0;
+    }
+
+    .status-select-container {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    #statusFilter {
+        width: 100%;
+        padding: 8px 32px 8px 16px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        background: #f8f9fa;
+        font-size: 14px;
+        color: #495057;
+        appearance: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    #statusFilter:hover {
+        border-color: #000;
+        background: white;
+    }
+
+    #statusFilter:focus {
+        outline: none;
+        border-color: #000;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-select-container::after {
+        content: '⌄';
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        color: #6c757d;
+        pointer-events: none;
+    }
+
+    .filter-stats {
+        display: flex;
+        gap: 12px;
+    }
+
+    .stats-item {
+        padding: 8px 16px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        min-width: 100px;
+        text-align: center;
+    }
+
+    .stats-number {
+        font-weight: 600;
+        font-size: 16px;
+        color: #000;
+        line-height: 1;
+    }
+
+    .stats-label {
+        color: #6c757d;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
     .page-title {
-        color: #000000;
-        font-weight: 700;
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
+        font-size: 24px;
+        font-weight: 600;
+        color: #212529;
+        margin: 0;
     }
     .table-container {
         background-color: #ffffff;
@@ -156,8 +262,36 @@
     <div class="row">
         <main class="col-md-12 px-md-4">
             <div class="orders-container mt-4">
-                <div class="header-section">
+                <div class="header-filter-section">
                     <h1 class="page-title">Order Management</h1>
+                    <div class="filter-content">
+                        <div class="filter-header">
+                            <i class="fas fa-filter filter-icon"></i>
+                            <span class="filter-label">Filter by Status</span>
+                        </div>
+                        <div class="status-select-container">
+                            <select id="statusFilter">
+                                <option value="all">All Orders</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Processing">Processing</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="Return Request">Return Request</option>
+                                <option value="Returned">Returned</option>
+                            </select>
+                        </div>
+                        <div class="filter-stats">
+                            <div class="stats-item">
+                                <div class="stats-number" id="totalOrders">0</div>
+                                <div class="stats-label">Total</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-number" id="filteredOrders">0</div>
+                                <div class="stats-label">Filtered</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="table-container">
@@ -219,7 +353,37 @@ document.addEventListener('DOMContentLoaded', function () {
     // Define the valid status order
     const statusOrder = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Return Request", "Returned"];
 
-    // Attach change event to all status dropdowns
+    // Status filter functionality
+    const statusFilter = document.getElementById('statusFilter');
+    const orderRows = document.querySelectorAll('table tbody tr');
+    const totalOrdersElement = document.getElementById('totalOrders');
+    const filteredOrdersElement = document.getElementById('filteredOrders');
+
+    // Update initial counts
+    totalOrdersElement.textContent = orderRows.length;
+    filteredOrdersElement.textContent = orderRows.length;
+
+    statusFilter.addEventListener('change', function() {
+        const selectedStatus = this.value;
+        let visibleCount = 0;
+        
+        orderRows.forEach(row => {
+            const statusCell = row.querySelector('td:nth-child(5)'); // Adjust index based on status column
+            const rowStatus = statusCell.querySelector('select').value;
+            
+            if (selectedStatus === 'all' || rowStatus === selectedStatus) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update the counters
+        filteredOrdersElement.textContent = visibleCount;
+    });
+
+    // Existing status dropdown functionality
     document.querySelectorAll('.status-select').forEach(select => {
         let currentStatus = select.value; // Track the initial/current status
 

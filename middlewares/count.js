@@ -7,7 +7,7 @@ const cartCount = async (req, res, next) => {
             const cart = await Cart.findOne({ user: req.session.user });
             let totalQuantity = 0;
             if (cart && cart.items) {
-                totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+                totalQuantity = cart.items.reduce((sum, item ) => sum + item.quantity, 0);
             }
             res.locals.cartCount = totalQuantity;
         } else {
