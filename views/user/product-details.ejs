@@ -34,43 +34,59 @@
             position: relative;
             width: 75%;
             max-width: 600px;
+            overflow: hidden;
+            border-radius: 8px;
         }
 
         .main-image {
             width: 100%;
             height: auto;
             display: block;
-            cursor: zoom-in;
             border-radius: 8px;
-        }
-
-        #zoomLens {
-            position: absolute;
-            border: 2px solid #999;
-            background-color: rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease-out;
             cursor: zoom-in;
-            width: 100px;
-            height: 100px;
-            visibility: hidden;
-            pointer-events: none;
         }
 
-        #zoomResult {
+        .main-image-container:hover .main-image {
+            transform: scale(1.5);
+        }
+
+        .main-image-container::after {
+            content: '';
             position: absolute;
             top: 0;
-            left: 155%;
-            width: 100px;
-            height: 100px;
-            border: 1px solid #ddd;
-            background-repeat: no-repeat;
-            display: none;
-            z-index: 999;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        @media (max-width: 768px) {
-            #zoomResult {
-                display: none !important;
-            }
+        .main-image-container:hover::after {
+            opacity: 1;
+        }
+
+        .zoom-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #333;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+
+        .main-image-container:not(:hover) .zoom-hint {
+            opacity: 1;
         }
 
         .thumbnails {
@@ -87,13 +103,14 @@
             border-radius: 4px;
             cursor: pointer;
             opacity: 0.6;
-            transition: opacity 0.3s ease;
+            transition: all 0.3s ease;
             border: 2px solid transparent;
         }
 
         .thumbnail.active, .thumbnail:hover {
             opacity: 1;
             border-color: #007bff;
+            transform: scale(1.05);
         }
 
         .product-info {
@@ -105,6 +122,27 @@
             font-size: 2rem;
             margin-bottom: 1rem;
             color: #333;
+        }
+
+        .category-info {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .category-label {
+            font-weight: 500;
+            margin-right: 5px;
+        }
+        
+        .category-link {
+            color: #007bff;
+            text-decoration: none;
+            text-transform: capitalize;
+        }
+        
+        .category-link:hover {
+            text-decoration: underline;
         }
 
         .product-rating {
@@ -175,8 +213,8 @@
 
         .add-to-cart {
             display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 10px;
         }
 
         .quantity-selector {
@@ -218,6 +256,37 @@
 
         .add-to-cart-btn:hover {
             background-color: #3a3a3a;
+        }
+
+        .wishlist-btn {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .wishlist-btn:hover {
+            background-color: #f8f8f8;
+        }
+
+        .wishlist-btn.active {
+            color: #ff4d4d;
+            border-color: #ff4d4d;
+        }
+
+        .wishlist-btn i {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .wishlist-btn.active i {
+            color: #ff4d4d;
         }
 
         .additional-info ul {
@@ -265,8 +334,14 @@
                 flex-direction: column;
             }
             
-            #zoomResult {
-                display: none !important;
+            .main-image-container:hover .main-image {
+                transform: none;
+            }
+            .main-image {
+                cursor: default;
+            }
+            .zoom-hint {
+                display: none;
             }
         }
     </style>
@@ -277,28 +352,36 @@
                 <div class="product-detail">
                     <!-- Product Gallery -->
                     <div class="product-gallery">
-                        <div class="main-image-container">
-                            <img src="/uploads/product-images/<%= product.productImage[0] %>" 
-                                 alt="<%= product.productName %>" 
-                                 id="mainImage" 
-                                 class="main-image">
-                            <div id="zoomLens"></div>
-                            <div id="zoomResult"></div>
-                        </div>
-                        
                         <div class="thumbnails">
                             <% product.productImage.forEach((image, index) => { %>
-                                <img src="/uploads/product-images/<%= image %>"
-                                     alt="<%= product.productName %> thumbnail <%= index + 1 %>"
-                                     class="thumbnail <%= index === 0 ? 'active' : '' %>"
-                                     onclick="changeMainImage(this.src)">
+                                <img 
+                                    src="/uploads/product-images/<%= image %>" 
+                                    alt="<%= product.productName %> thumbnail <%= index + 1 %>"
+                                    class="thumbnail <%= index === 0 ? 'active' : '' %>"
+                                    onclick="changeMainImage(this, '/uploads/product-images/<%= image %>')"
+                                >
                             <% }); %>
+                        </div>
+                        <div class="main-image-container">
+                            <div class="zoom-hint">Hover to zoom</div>
+                            <img 
+                                id="mainImage" 
+                                src="/uploads/product-images/<%= product.productImage[0] %>" 
+                                alt="<%= product.productName %>"
+                                class="main-image"
+                            >
                         </div>
                     </div>
 
             <!-- Product Info -->
             <div class="product-info">
                 <h1 class="product-name"><%= product.productName %></h1>
+                <div class="category-info">
+                    <span class="category-label">Category:</span>
+                    <a href="/shop?category=<%= product.category.name %>" class="category-link">
+                        <%= product.category.name %>
+                    </a>
+                </div>
                 <div class="product-rating">
                     <div class="stars">
                         <% for(let i = 0; i < 5; i++) { %>
@@ -345,11 +428,16 @@
                     </div>
                   
                     <button class="add-to-cart-btn" onclick="addToCart('<%=product._id%>')">Add to Cart</button>
+                    <button class="wishlist-btn" onclick="toggleWishlist('<%=product._id%>')">
+                        <i class="fas fa-heart"></i>
+                    </button>
                 </div>
 
                 <div class="additional-info">
                     <ul>
                         <!-- <li><i class="icon-truck"></i> Free shipping on orders over ₹500</li> -->
+                        <li><i class="icon-rotate-ccw"></i> Easy cancelation</li>
+
                         <li><i class="icon-rotate-ccw"></i> 30-day return policy</li>
                         <li><i class="icon-credit-card"></i> Secure payments</li>
                     </ul>
@@ -490,105 +578,109 @@
     }
 }
 
-        // Get required elements
-        const mainImage = document.getElementById("mainImage");
-        const mainImageContainer = document.querySelector(".main-image-container");
-        const zoomLens = document.getElementById("zoomLens");
-        const zoomResult = document.getElementById("zoomResult");
-
-
-
-        // Calculate zoom ratio based on image and result sizes
-        function getZoomRatio() {
-            const resultWidth = zoomResult.offsetWidth;
-            const imageWidth = mainImage.offsetWidth;
-            return resultWidth / zoomLens.offsetWidth;
+        async function toggleWishlist(productId) {
+            try {
+                const response = await fetch('/addToWishlist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ productId: productId })
+                });
+                
+                if (response.ok) {
+                    const btn = document.querySelector('.wishlist-btn');
+                    btn.classList.toggle('active');
+                    
+                    // Show feedback to user using SweetAlert2
+                    const isActive = btn.classList.contains('active');
+                    const message = isActive ? 'Added to wishlist!' : 'Removed from wishlist!';
+                    const icon = isActive ? 'success' : 'info';
+                    
+                    Swal.fire({
+                        title: message,
+                        icon: icon,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer)
+                            toast.addEventListener('mouseleave', Swal.resumeTimer)
+                        }
+                    });
+                } else {
+                    const data = await response.json();
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.error || 'Failed to update wishlist',
+                        icon: 'error',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred. Please try again.',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
         }
 
-        // Update zoom result dimensions
-        function updateZoomResultSize() {
-            const rect = mainImage.getBoundingClientRect();
-            zoomResult.style.width = `${rect.width}px`;
-            zoomResult.style.height = `${rect.height}px`;
-        }
-
-        // Calculate cursor position relative to image
-        function getCursorPosition(event) {
-            const rect = mainImage.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-            return { x, y };
-        }
-
-        // Move lens and update zoom result
-        function moveLens(event) {
-            event.preventDefault();
-            
-            const pos = getCursorPosition(event);
-            const rect = mainImage.getBoundingClientRect();
-            
-            // Calculate lens position
-            let x = pos.x - (zoomLens.offsetWidth / 2);
-            let y = pos.y - (zoomLens.offsetHeight / 2);
-            
-            // Prevent lens from going outside image bounds
-            x = Math.min(Math.max(0, x), rect.width - zoomLens.offsetWidth);
-            y = Math.min(Math.max(0, y), rect.height - zoomLens.offsetHeight);
-            
-            // Update lens position
-            zoomLens.style.left = `${x}px`;
-            zoomLens.style.top = `${y}px`;
-            
-            // Calculate and update zoom result
-            const ratio = getZoomRatio();
-            const bgPosX = x * ratio;
-            const bgPosY = y * ratio;
-            
-            zoomResult.style.backgroundImage = `url(${mainImage.src})`;
-            zoomResult.style.backgroundSize = `${rect.width * ratio}px ${rect.height * ratio}px`;
-            zoomResult.style.backgroundPosition = `-${bgPosX}px -${bgPosY}px`;
-        }
-
-        // Initialize zoom functionality
         function initZoom() {
-            // Set initial lens size
-            zoomLens.style.width = '100px';
-            zoomLens.style.height = '100px';
-            
-            // Update result size
-            updateZoomResultSize();
-            
-            // Add event listeners
-            mainImage.addEventListener("mouseenter", function() {
-                zoomLens.style.visibility = "visible";
-                zoomResult.style.display = "block";
-                zoomResult.style.backgroundImage = `url(${mainImage.src})`;
+            const container = document.querySelector('.main-image-container');
+            const mainImage = document.getElementById('mainImage');
+            let lastX = 0;
+            let lastY = 0;
+
+            function moveImage(e) {
+                const rect = container.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width;
+                const y = (e.clientY - rect.top) / rect.height;
+                
+                // Smooth transition between positions
+                lastX = lastX + (x - lastX) * 0.2;
+                lastY = lastY + (y - lastY) * 0.2;
+                
+                // Move the image in the opposite direction of the mouse
+                // to create a natural panning effect
+                const moveX = -(lastX - 0.5) * 50;
+                const moveY = -(lastY - 0.5) * 50;
+                
+                mainImage.style.transform = `scale(1.5) translate(${moveX}%, ${moveY}%)`;
+            }
+
+            container.addEventListener('mousemove', moveImage);
+            container.addEventListener('mouseleave', () => {
+                mainImage.style.transform = 'scale(1) translate(0, 0)';
             });
-            
-            mainImage.addEventListener("mouseleave", function() {
-                zoomLens.style.visibility = "hidden";
-                zoomResult.style.display = "none";
-            });
-            
-            mainImage.addEventListener("mousemove", moveLens);
         }
 
-        // Initialize on page load and window resize
-        window.addEventListener("load", initZoom);
-        window.addEventListener("resize", updateZoomResultSize);
-
-        // Change main image function
-        function changeMainImage(src) {
-            // Update main image
+        // Function to change main image
+        function changeMainImage(thumbnail, imagePath) {
             const mainImage = document.getElementById('mainImage');
-            mainImage.src = src;
+            mainImage.src = imagePath;
             
             // Update active thumbnail
-            const thumbnails = document.querySelectorAll('.thumbnail');
-            thumbnails.forEach(thumb => thumb.classList.remove('active'));
-            const thumbnail = document.querySelector(`.thumbnail[src="${src}"]`);
+            document.querySelectorAll('.thumbnail').forEach(thumb => {
+                thumb.classList.remove('active');
+            });
             thumbnail.classList.add('active');
         }
+
+        // Initialize zoom when page loads
+        window.addEventListener('load', initZoom);
 
         // Quantity selector function
         function changeQuantity(change) {

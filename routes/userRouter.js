@@ -13,12 +13,14 @@ const couponController=require("../controllers/user/couponController")
 const razorpayController = require('../controllers/user/paymentController.js');
 const contactController = require('../controllers/user/contactController.js');
 const { cartCount, wishlistCount } = require('../middlewares/count.js');
-console.log(cartCount)
+const getActiveCoupon = require('../middlewares/activeCoupon.js');
+const invoiceController = require('../controllers/user/invoiceController.js');
 
+console.log(cartCount)
 
 router.use(cartCount);
 router.use(wishlistCount);
-
+router.use(getActiveCoupon);
 
 router.get("/pageNotFound",userController.pageNotFound)
 router.get("/",userController.loadHomepage)
@@ -91,7 +93,7 @@ router.post('/checkout/process', userAuth, checkoutController.processCheckout);
 router.get('/order-details/:orderId', userAuth, orderController.getOrderDetails);
 router.post('/orders/:orderId/cancel', userAuth, orderController.cancelOrder);
 router.post('/orders/:orderId/return', userAuth, orderController.returnOrder);
-router.get('/order/:orderId/invoice', userAuth, orderController.downloadInvoice);
+router.get('/order/:orderId/invoice', userAuth, invoiceController.generateInvoice);
 router.post('/retry-payment/:orderId', userAuth, razorpayController.retryPayment);
 
 //Profile...............................
@@ -108,6 +110,7 @@ router.get("/forgot-password", profileController.getForgotPasswordPage);
 router.post("/forgot-email-valid", profileController.forgotEmailValid);
 router.post("/verify-passwordForgot-otp", profileController.verifyForgotPasswordOtp);
 router.get("/reset-password", profileController.getResetPasswordPage);
+router.get('/order/:orderId/invoice', userAuth, invoiceController.generateInvoice);
 
 // Password Reset Routes
 router.get('/pass-reset', userAuth, (req, res) => {

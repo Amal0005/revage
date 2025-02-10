@@ -559,13 +559,13 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="stock-status <%= product.stock > 0 ? 'in-stock' : 'out-of-stock' %>">
-                                                <%= product.stock > 0 ? 'In Stock' : 'Out of Stock' %>
+                                            <span class="stock-status <%= (product.stock > 0 && !product.isBlocked && (!product.category || !product.category.isBlocked)) ? 'in-stock' : (product.isBlocked || (product.category && product.category.isBlocked) ? 'out-of-stock' : 'out-of-stock') %>">
+                                                <%= (product.stock > 0 && !product.isBlocked && (!product.category || !product.category.isBlocked)) ? 'In Stock' : (product.isBlocked || (product.category && product.category.isBlocked) ? 'Not Available' : 'Out of Stock') %>
                                             </span>
                                         </td>
                                         <td>
                                             <div class="action-buttons">
-                                                <button onclick="addToCart('<%= product._id %>')" class="add-to-cart-btn" <%= product.stock <= 0 ? 'disabled' : '' %>>
+                                                <button onclick="addToCart('<%= product._id %>')" class="add-to-cart-btn" <%= (product.stock <= 0 || product.isBlocked || (product.category && product.category.isBlocked)) ? 'disabled' : '' %>>
                                                     Add to Cart
                                                 </button>
                                                 <button onclick="removeFromWishlistHandler(this, '<%= product.wishlistItemId %>')" class="remove-btn">

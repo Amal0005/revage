@@ -551,18 +551,19 @@
                                 const categoryOffer = item.product.category && item.product.category.categoryOffer ? item.product.category.categoryOffer : 0;
                                 const bestOffer = Math.max(productOffer, categoryOffer);
                                 
-                                let price = item.product.regularPrice;
+                                const originalPrice = item.product.regularPrice;
+                                let finalPrice = originalPrice;
                                 if (bestOffer > 0) {
-                                    const discountAmount = (item.product.regularPrice * bestOffer) / 100;
-                                    price = item.product.regularPrice - discountAmount;
+                                    const discountAmount = Math.round((originalPrice * bestOffer) / 100);
+                                    finalPrice = originalPrice - discountAmount;
                                 }
-                                const totalPrice = Math.round(price) * item.quantity;
+                                const itemTotal = finalPrice * item.quantity;
                             %>
                             <% if (bestOffer > 0) { %>
-                                <p class="original-price">₹<%= (item.product.regularPrice * item.quantity).toLocaleString('en-IN') %></p>
+                                <p class="original-price">₹<%= originalPrice.toLocaleString('en-IN') %></p>
                                 <p class="offer-text"><%= bestOffer %>% OFF</p>
                             <% } %>
-                            <p class="item-price">₹<%= totalPrice.toLocaleString('en-IN') %></p>
+                            <p class="item-price">₹<%= finalPrice.toLocaleString('en-IN') %></p>
                         </div>
                     </div>
                 <% }) %>
@@ -572,7 +573,17 @@
         <div class="order-total">
             <div class="total-row">
                 <span>Subtotal:</span>
-                <span>₹<%= cart.subtotal.toLocaleString('en-IN') %></span>
+                <span>₹<%= Math.round(cart.items.reduce((total, item) => {
+                    const price = item.product.regularPrice;
+                    const offer = Math.max(
+                        item.product.offer?.percentage || 0,
+                        item.product.category?.categoryOffer || 0
+                    );
+                    const discountedPrice = offer > 0 ? 
+                        price - Math.round((price * offer) / 100) : 
+                        price;
+                    return total + (discountedPrice * item.quantity);
+                }, 0)).toLocaleString('en-IN') %></span>
             </div>
             <div class="total-row">
                 <span>Shipping:</span>
@@ -584,7 +595,17 @@
             </div>
             <div class="total-row" style="font-weight: bold; font-size: 1.2em;">
                 <span>Total:</span>
-                <span id="final-total">₹<%= cart.total.toLocaleString('en-IN') %></span>
+                <span id="final-total">₹<%= Math.round(cart.items.reduce((total, item) => {
+                    const price = item.product.regularPrice;
+                    const offer = Math.max(
+                        item.product.offer?.percentage || 0,
+                        item.product.category?.categoryOffer || 0
+                    );
+                    const discountedPrice = offer > 0 ? 
+                        price - Math.round((price * offer) / 100) : 
+                        price;
+                    return total + (discountedPrice * item.quantity);
+                }, 0)).toLocaleString('en-IN') %></span>
             </div>
         </div>
 

@@ -124,6 +124,27 @@
         justify-content: flex-end;
         gap: 1rem;
     }
+
+    /* Error message styles */
+    .error-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .form-control.is-invalid:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
 </style>
 
 <div class="content-wrapper">
@@ -185,31 +206,43 @@
 <div id="couponModal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle">Add New Coupon</h3>
-        <form id="couponForm" onsubmit="handleSubmit(event)">
+        <form id="couponForm" onsubmit="handleSubmit(event)" novalidate>
             <input type="hidden" id="couponId">
+            
             <div class="form-group">
                 <label for="code">Coupon Code</label>
-                <input type="text" id="code" class="form-control" >
+                <input type="text" id="code" class="form-control" oninput="validateField('code'); this.value = this.value.toUpperCase()">
+                <div id="code-error" class="error-message"></div>
             </div>
+
             <div class="form-group">
                 <label for="discountType">Discount Type</label>
-                <select id="discountType" class="form-control" >
+                <select id="discountType" class="form-control" onchange="validateField('discountType'); validateField('discount')">
+                    <option value="">Select Type</option>
                     <option value="percentage">Percentage</option>
                     <option value="fixed">Fixed Amount</option>
                 </select>
+                <div id="discountType-error" class="error-message"></div>
             </div>
+
             <div class="form-group">
                 <label for="discount">Discount Value</label>
-                <input type="number" id="discount" class="form-control" >
+                <input type="number" id="discount" class="form-control" step="0.01" oninput="validateField('discount')">
+                <div id="discount-error" class="error-message"></div>
             </div>
+
             <div class="form-group">
                 <label for="minPurchase">Minimum Purchase Amount</label>
-                <input type="number" id="minPurchase" class="form-control">
+                <input type="number" id="minPurchase" class="form-control" step="0.01" oninput="validateField('minPurchase')">
+                <div id="minPurchase-error" class="error-message"></div>
             </div>
+
             <div class="form-group">
                 <label for="expiryDate">Expiry Date</label>
-                <input type="date" id="expiryDate" class="form-control" >
+                <input type="date" id="expiryDate" class="form-control" onchange="validateField('expiryDate')">
+                <div id="expiryDate-error" class="error-message"></div>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn-action" onclick="closeModal()">Cancel</button>
                 <button type="submit" class="btn-add">Save Coupon</button>
@@ -247,90 +280,136 @@
         document.getElementById('couponModal').style.display = 'none';
     }
 
+    function validateField(fieldId) {
+        const field = document.getElementById(fieldId);
+        const value = field.value.trim();
+        const errorElement = document.getElementById(`${fieldId}-error`);
+        let isValid = true;
+        let errorMessage = '';
+
+        switch(fieldId) {
+            case 'code':
+                if (!value) {
+                    errorMessage = 'Coupon code is required';
+                    isValid = false;
+                } else if (value.length < 3) {
+                    errorMessage = 'Coupon code must be at least 3 characters';
+                    isValid = false;
+                } else if (value.length > 15) {
+                    errorMessage = 'Coupon code cannot exceed 15 characters';
+                    isValid = false;
+                } else if (!/^[A-Z0-9]+$/.test(value)) {
+                    errorMessage = 'Only uppercase letters and numbers are allowed';
+                    isValid = false;
+                }
+                break;
+
+            case 'discountType':
+                if (!value) {
+                    errorMessage = 'Please select a discount type';
+                    isValid = false;
+                }
+                break;
+
+            case 'discount':
+                const discountType = document.getElementById('discountType').value;
+                const discountValue = parseFloat(value);
+
+                if (!value) {
+                    errorMessage = 'Discount value is required';
+                    isValid = false;
+                } else if (isNaN(discountValue) || discountValue <= 0) {
+                    errorMessage = 'Please enter a valid discount value greater than 0';
+                    isValid = false;
+                } else if (discountType === 'percentage' && discountValue > 99) {
+                    errorMessage = 'Percentage discount cannot exceed 99%';
+                    isValid = false;
+                } else if (discountType === 'fixed' && discountValue > 10000) {
+                    errorMessage = 'Fixed discount cannot exceed ₹10,000';
+                    isValid = false;
+                }
+                break;
+
+            case 'minPurchase':
+                const minPurchaseValue = parseFloat(value);
+                
+                if (!value) {
+                    errorMessage = 'Minimum purchase amount is required';
+                    isValid = false;
+                } else if (isNaN(minPurchaseValue) || minPurchaseValue < 0) {
+                    errorMessage = 'Please enter a valid amount (0 or greater)';
+                    isValid = false;
+                } else if (minPurchaseValue > 100000) {
+                    errorMessage = 'Minimum purchase cannot exceed ₹100,000';
+                    isValid = false;
+                }
+                break;
+
+            case 'expiryDate':
+                if (!value) {
+                    errorMessage = 'Expiry date is required';
+                    isValid = false;
+                } else {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const selectedDate = new Date(value);
+                    if (selectedDate < today) {
+                        errorMessage = 'Expiry date cannot be in the past';
+                        isValid = false;
+                    }
+                }
+                break;
+        }
+
+        // Update UI with validation result
+        if (errorElement) {
+            errorElement.textContent = errorMessage;
+            errorElement.style.display = isValid ? 'none' : 'block';
+        }
+        field.classList.toggle('is-invalid', !isValid);
+
+        return isValid;
+    }
+
     function validateForm() {
-        const code = document.getElementById('code').value.trim();
-        const discountType = document.getElementById('discountType').value;
-        const discount = parseFloat(document.getElementById('discount').value);
-        const minPurchase = parseFloat(document.getElementById('minPurchase').value);
-        const expiryDate = document.getElementById('expiryDate').value;
+        const fields = ['code', 'discountType', 'discount', 'minPurchase', 'expiryDate'];
+        let isValid = true;
 
-        if (!code) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: 'Please enter a coupon code'
-            });
-            return false;
-        }
+        fields.forEach(field => {
+            if (!validateField(field)) {
+                isValid = false;
+            }
+        });
 
-        if (!discountType) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: 'Please select a discount type'
-            });
-            return false;
-        }
+        return isValid;
+    }
 
-        if (isNaN(discount) || discount <= 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: 'Please enter a valid discount value greater than 0'
-            });
-            return false;
-        }
-
-        if (discountType === 'percentage' && discount > 100) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: 'Percentage discount cannot be more than 100%'
-            });
-            return false;
-        }
-
-        if (isNaN(minPurchase) || minPurchase < 0) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: 'Minimum purchase amount must be 0 or greater'
-            });
-            return false;
-        }
-
-        if (!expiryDate) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: 'Please select an expiry date'
-            });
-            return false;
-        }
-
-        const selectedDate = new Date(expiryDate);
-        if (selectedDate < new Date()) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: 'Expiry date must be in the future'
-            });
-            return false;
-        }
-
-        return true;
+    function clearErrors() {
+        const fields = ['code', 'discountType', 'discount', 'minPurchase', 'expiryDate'];
+        fields.forEach(field => {
+            const element = document.getElementById(field);
+            const errorElement = document.getElementById(`${field}-error`);
+            if (element) element.classList.remove('is-invalid');
+            if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.style.display = 'none';
+            }
+        });
     }
 
     async function handleSubmit(event) {
         event.preventDefault();
-        if (!validateForm()) return;
+
+        if (!validateForm()) {
+            return;
+        }
 
         const couponId = document.getElementById('couponId').value;
         const formData = {
-            code: document.getElementById('code').value,
+            code: document.getElementById('code').value.trim().toUpperCase(),
             discountType: document.getElementById('discountType').value,
-            discount: document.getElementById('discount').value,
-            minPurchase: document.getElementById('minPurchase').value,
+            discount: parseFloat(document.getElementById('discount').value),
+            minPurchase: parseFloat(document.getElementById('minPurchase').value),
             expiryDate: document.getElementById('expiryDate').value
         };
 
@@ -344,31 +423,25 @@
             });
 
             const data = await response.json();
-            
+
             if (!response.ok) {
                 let errorMessage = data.message || 'Failed to save coupon';
                 if (data.errors) {
                     errorMessage += '\n' + data.errors.join('\n');
                 }
-                if (data.missingFields) {
-                    const missing = Object.entries(data.missingFields)
-                        .filter(([_, isMissing]) => isMissing)
-                        .map(([field]) => field)
-                        .join(', ');
-                    errorMessage += `\nMissing fields: ${missing}`;
-                }
                 throw new Error(errorMessage);
             }
 
-            Swal.fire({
+            await Swal.fire({
                 icon: 'success',
                 title: 'Success',
-                text: data.message || `Coupon ${couponId ? 'updated' : 'added'} successfully!`,
-                timer: 1500
-            }).then(() => {
-                closeModal();
-                location.reload();
+                text: data.message || `Coupon ${couponId ? 'updated' : 'created'} successfully!`,
+                timer: 1500,
+                showConfirmButton: false
             });
+
+            closeModal();
+            location.reload();
         } catch (error) {
             Swal.fire({
                 icon: 'error',

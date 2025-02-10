@@ -22,32 +22,61 @@ const loadWishlist = async (req, res) => {
 
         console.log('3. Looking for wishlist with userId:', userId);
         const wishlist = await Wishlist.findOne({ userId })
-            .populate({
-                path: 'products.productId',
-                select: 'productName productImage regularPrice salePrice quantity category status',
-                populate: {
-                    path: 'category',
-                    select: 'name'
-                }
-            });
+        .populate({
+            path: 'products.productId',
+            select: 'productName productImage regularPrice salePrice quantity category isBlocked',
+            populate: {
+                path: 'category',
+                select: 'name isBlocked isListed'
+            }
+        });
 
         console.log('4. Wishlist found:', wishlist ? 'Yes' : 'No');
         
         const products = wishlist ? wishlist.products
-            .filter(item => item.productId) 
-            .map(item => {
+        .filter(item => {
+            const product = item.productId;
+            return product && 
+                   !product.isBlocked && 
+                   product.category && 
+                   product.category.isListed === true;
+        })
+        .map(item => {
+            const product = item.productId;
+            return {
+                _id: product._id,
+                productName: product.productName,
+                productImage: product.productImage || [],
+                regularPrice: product.regularPrice || 0,
+                salePrice: product.salePrice || product.regularPrice || 0,
+                stock: product.quantity || 0,
+                isBlocked: product.isBlocked || false,
+                category: {
+                    name: product.category ? product.category.name : 'Uncategorized',
+                    isBlocked: product.category ? product.category.isBlocked : false,
+                    isListed: product.category ? product.category.isListed : false
+                },
+                wishlistItemId: item._id
+            };
+        }) : [];
+
+        // Remove products with unlisted categories from database
+        if (wishlist) {
+            const hasUnlistedProducts = wishlist.products.some(item => {
                 const product = item.productId;
-                return {
-                    _id: product._id,
-                    productName: product.productName,
-                    productImage: product.productImage || [],
-                    regularPrice: product.regularPrice || 0,
-                    salePrice: product.salePrice || product.regularPrice || 0,
-                    stock: product.quantity || 0,
-                    category: product.category || { name: 'Uncategorized' },
-                    wishlistItemId: item._id
-                };
-            }) : [];
+                return !product || !product.category || product.category.isListed !== true;
+            });
+
+            if (hasUnlistedProducts) {
+                wishlist.products = wishlist.products.filter(item => {
+                    const product = item.productId;
+                    return product && 
+                           product.category && 
+                           product.category.isListed === true;
+                });
+                await wishlist.save();
+            }
+        }
 
         console.log('5. Mapped products:', products.length);
 

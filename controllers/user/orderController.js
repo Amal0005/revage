@@ -4,6 +4,7 @@ const Product = require("../../models/productSchema");
 const Wallet = require("../../models/walletSchema");
 const User = require("../../models/userSchema");
 const Cart = require("../../models/cartSchema");
+const PDFDocument = require('pdfkit');
 
 const getOrderDetails = async (req, res) => {
   try {
@@ -27,7 +28,6 @@ const getOrderDetails = async (req, res) => {
       return res.status(404).render("page-404", { error: "Order not found" });
     }
 
-    // Get the user's address that matches the shipping address
     const user = await User.findById(userId).select('addresses');
     if (!user) {
       console.log('User not found');
@@ -350,31 +350,7 @@ const returnOrder = async (req, res) => {
   }
 };
 
-const downloadInvoice = async (req, res) => {
-  try {
-    const orderId = req.params.orderId;
-    const userId = req.session.user;
 
-    const order = await Order.findOne({ _id: orderId, user: userId }).populate({
-      path: "items.product",
-      select: "productName productImage salePrice",
-    });
-
-    if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
-    }
-
-    // TODO: Generate and send invoice
-    res.json({ success: true, message: "Invoice downloaded" });
-  } catch (error) {
-    console.error("Error downloading invoice:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to download invoice" });
-  }
-};
 
 const checkout = async (req, res) => {
     try {
@@ -620,7 +596,6 @@ module.exports = {
   cancelOrder,
   trackOrder,
   returnOrder,
-  downloadInvoice,
   checkout,
   retryPayment,
   verifyPayment

@@ -13,7 +13,7 @@ const loadCart = async (req, res) => {
                 select: 'productName productImage regularPrice offer category isBlocked',
                 populate: {
                     path: 'category',
-                    select: 'categoryOffer categoryName'
+                    select: 'categoryOffer categoryName isListed'
                 }
             });
 
@@ -64,7 +64,23 @@ const loadCart = async (req, res) => {
 const filterBlockedProducts = (cart) => {
     if (!cart) return null;
     
-    const filteredItems = cart.items.filter(item => !item.product.isBlocked);
+    const filteredItems = cart.items.filter(item => {
+        const product = item.product;
+        return product && 
+               !product.isBlocked && 
+               product.category && 
+               product.category.isListed === true;
+    });
+
+    // If there are blocked or unlisted items, update the cart in the database
+    if (filteredItems.length !== cart.items.length) {
+        Cart.findByIdAndUpdate(
+            cart._id,
+            { items: filteredItems },
+            { new: true }
+        ).catch(err => console.error('Error updating cart:', err));
+    }
+
     return {
         ...cart.toObject(),
         items: filteredItems

@@ -247,6 +247,29 @@
     font-weight: 500;
 }
 
+.download-invoice-btn {
+    background-color: #1e918b;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s;
+    margin-top: 1rem;
+}
+
+.download-invoice-btn:hover {
+    background-color: #167571;
+}
+
+.download-invoice-btn i {
+    font-size: 1.1rem;
+}
+
 .details-section {
     margin: 2rem 0;
     padding: 1.5rem;
@@ -434,6 +457,12 @@
         </div>
         <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
         <p><strong>Payment Status:</strong> <%= order.paymentStatus %></p>
+        <% if (order.status !== 'Pending') { %>
+            <button onclick="downloadInvoice('<%= order._id %>')" class="download-invoice-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+                <i class="fas fa-file-invoice"></i>
+                Download Invoice
+            </button>
+        <% } %>
     </div>
 
     <h2>Shipping Address</h2>
@@ -469,7 +498,7 @@
                 <div class="item-details">
                     <h4><%= item.product.productName %></h4>
                     <p><strong>Quantity:</strong> <%= item.quantity %></p>
-                    <p><strong>Price:</strong> ₹<%= item.price.toLocaleString('en-IN') %></p>
+                    <!-- <p><strong>Price:</strong> ₹<%= item.price.toLocaleString('en-IN') %></p> -->
                     <% if (item.appliedOffer && item.appliedOffer.percentage) { %>
                         <p class="offer-applied">Offer: <%= item.appliedOffer.percentage %>% off</p>
                     <% } %>
@@ -530,13 +559,12 @@
     </div>
 
     <div class="order-actions">
-        <% if (order.status === 'Pending' || order.status === 'Processing') { %>
+        <% if (order.status === 'Processing'||order.paymentMethod === 'cod' && order.status === 'Pending') { %>
             <button class="cancel-btn" onclick="cancelOrder('<%= order._id %>')">Cancel Order</button>
         <% } %>
         <% if (order.status === 'Delivered') { %>
             <button class="return-btn" onclick="showReturnForm()">Return Order</button>
         <% } %>
-        <!-- <a href="/order/<%= order._id %>/invoice" class="download-invoice">Download Invoice</a> -->
     </div>
 </div>
 
@@ -807,6 +835,50 @@ function retryPayment(orderId) {
             text: 'An error occurred: ' + error.message
         });
     });
+}
+
+async function downloadInvoice(orderId) {
+    try {
+        // Add loading state to button
+        const button = document.querySelector('.download-invoice-btn');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+        button.disabled = true;
+
+        const response = await fetch(`/order/${orderId}/invoice`);
+        
+        // Log the response status and details for debugging
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(`Failed to generate invoice: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `invoice-${orderId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+    } catch (error) {
+        console.error('Download invoice error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: `Failed to download invoice: ${error.message}`
+        });
+    } finally {
+        // Reset button state
+        const button = document.querySelector('.download-invoice-btn');
+        button.innerHTML = '<i class="fas fa-file-invoice"></i> Download Invoice';
+        button.disabled = false;
+    }
 }
 </script>
 

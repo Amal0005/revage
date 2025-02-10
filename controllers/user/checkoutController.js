@@ -13,10 +13,10 @@ const checkoutController = {
             
             const cart = await Cart.findOne({ user: userId }).populate({
                 path: 'items.product',
-                select: 'productName productImage regularPrice salePrice offer category',
+                select: 'productName productImage regularPrice salePrice offer category isBlocked',
                 populate: {
                     path: 'category',
-                    select: 'categoryOffer'
+                    select: 'categoryOffer isListed'
                 }
             });
 
@@ -24,17 +24,27 @@ const checkoutController = {
                 return res.redirect('/cart');
             }
 
-            // Filter out blocked products and calculate totals
-            const validItems = cart.items.filter(item => !item.product.isBlocked);
+            // Filter out blocked products and products with unlisted categories
+            const validItems = cart.items.filter(item => {
+                const product = item.product;
+                return product && 
+                       !product.isBlocked && 
+                       product.category && 
+                       product.category.isListed === true;
+            });
             
-            // If all products are blocked, redirect to cart
+            // If all products are blocked or unlisted, redirect to cart
             if (validItems.length === 0) {
                 return res.redirect('/cart?error=blocked');
             }
 
             // Check if any products were filtered out
             if (validItems.length !== cart.items.length) {
-                // Some products were blocked
+                // Update cart to remove blocked/unlisted items
+                cart.items = validItems;
+                await cart.save();
+                
+                // Some products were blocked or unlisted
                 req.session.flashMessage = 'Some items in your cart are no longer available and have been removed.';
             }
 
@@ -214,10 +224,10 @@ const checkoutController = {
 
             const cart = await Cart.findOne({ user: userId }).populate({
                 path: 'items.product',
-                select: 'productName productImage regularPrice salePrice offer category',
+                select: 'productName productImage regularPrice salePrice offer category isBlocked',
                 populate: {
                     path: 'category',
-                    select: 'categoryOffer'
+                    select: 'categoryOffer isListed'
                 }
             });
             if (!cart || !cart.items || cart.items.length === 0) {
@@ -228,10 +238,16 @@ const checkoutController = {
                 });
             }
 
-            // Filter out blocked products
-            const validItems = cart.items.filter(item => !item.product.isBlocked);
+            // Filter out blocked products and products with unlisted categories
+            const validItems = cart.items.filter(item => {
+                const product = item.product;
+                return product && 
+                       !product.isBlocked && 
+                       product.category && 
+                       product.category.isListed === true;
+            });
             
-            // If all products are blocked, prevent checkout
+            // If all products are blocked or unlisted, prevent checkout
             if (validItems.length === 0) {
                 return res.status(400).json({ 
                     success: false, 
@@ -239,7 +255,7 @@ const checkoutController = {
                 });
             }
 
-            // If some products were blocked, notify the user
+            // If some products were blocked or unlisted, notify the user
             if (validItems.length !== cart.items.length) {
                 return res.status(400).json({ 
                     success: false, 
