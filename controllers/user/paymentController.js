@@ -17,6 +17,9 @@ const createRazorpayOrder = async (req, res) => {
     try {
         const userId = req.session.user;
         const { total, subtotal, shipping, currency = 'INR' } = req.body;
+        console.log("body",req.body)
+        
+        
 
         if (!total || total <= 0) {
             return res.status(400).json({ 
@@ -63,7 +66,8 @@ const createRazorpayOrder = async (req, res) => {
             totalAmount: total,
             razorpayOrderId: razorpayOrder.id,
             paymentMethod: 'razorpay',
-            paymentStatus: 'Pending'
+            paymentStatus: 'Pending',
+           
         });
         await newOrder.save();
 

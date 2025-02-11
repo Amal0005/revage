@@ -429,6 +429,7 @@ const checkout = async (req, res) => {
             status: paymentMethod === 'wallet' ? 'Processing' : 'Pending',
             orderDate: new Date()
         });
+     
 
         // Process wallet payment
         if (paymentMethod === 'wallet') {

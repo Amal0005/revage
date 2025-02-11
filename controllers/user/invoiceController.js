@@ -20,11 +20,9 @@ const generateInvoice = async (req, res) => {
             .populate({
                 path: "user",
                 select: "name email",
-            })
-            .populate({
-                path: "shippingAddress",
-                select: "name street city state pincode mobile"
             });
+            console.log('Debug - Order shipping details:', order.shippingAddress);
+            console.log('Full order data:', JSON.stringify(order, null, 2));
         if (!order) {
             console.log('Order not found:', { orderId, userId });
             return res.status(404).json({ success: false, message: "Order not found" });
@@ -80,6 +78,7 @@ const addHeader = async (doc) => {
     doc.moveDown();
 };
 
+      
 const addOrderDetails = async (doc, order) => {
     doc.fontSize(12);
     
@@ -96,10 +95,10 @@ const addOrderDetails = async (doc, order) => {
     const rightColumn = {
         text: [
             'Bill To:',
-            `${order.shippingAddress?.name || 'N/A'}`,
-            `${order.shippingAddress?.addressLine1 || 'N/A'}`,  // If your field name is different
+            `${order.shippingAddress?.fullName || 'N/A'}`,
+            `${order.shippingAddress?.address || 'N/A'}`,
             `${order.shippingAddress?.city || 'N/A'}, ${order.shippingAddress?.state || 'N/A'} ${order.shippingAddress?.pincode || 'N/A'}`,
-            `Phone: ${order.shippingAddress?.mobile || 'N/A'}`
+            `Phone: ${order.shippingAddress?.phone || 'N/A'}`
         ],
         x: doc.page.width / 2
     };

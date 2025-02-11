@@ -405,7 +405,7 @@
                             <tr>
                                 <td>#<%= order._id.toString().slice(-6).toUpperCase() %></td>
                                 <td><%= order?.user?.name || "no name"%></td>
-                                <td><%= order.items[0].product.productName %></td>
+                                <td><%= order.items[0]?.product?.productName||"no image" %></td>
                                 <td>₹<%= order.totalAmount %></td>
                                 <td>
                                     <span class="status-badge status-<%= order.status.toLowerCase() %>">
