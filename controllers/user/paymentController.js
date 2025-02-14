@@ -17,16 +17,43 @@ const createRazorpayOrder = async (req, res) => {
     try {
         const userId = req.session.user;
         const { total, subtotal, shipping, currency = 'INR' } = req.body;
-        console.log("body",req.body)
         
-        
-
         if (!total || total <= 0) {
             return res.status(400).json({ 
                 success: false, 
                 message: 'Invalid order amount' 
             });
         }
+
+        // Fetch user to get default address
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'User not found' 
+            });
+        }
+
+        // Check if user has any addresses
+        if (!user.addresses || user.addresses.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'No shipping address available. Please add an address in your profile.' 
+            });
+        }
+
+        // Use the first address from user's profile
+        const defaultAddress = user.addresses[0];
+        const shippingAddress = {
+            fullName: defaultAddress.name,
+            phone: defaultAddress.phone,
+            address: defaultAddress.address,
+            city: defaultAddress.city,
+            state: defaultAddress.state,
+            pincode: defaultAddress.pincode
+        };
+
+        console.log(shippingAddress)
 
         // Fetch cart to get items
         const cart = await Cart.findOne({ user: userId }).populate('items.product');
@@ -67,7 +94,7 @@ const createRazorpayOrder = async (req, res) => {
             razorpayOrderId: razorpayOrder.id,
             paymentMethod: 'razorpay',
             paymentStatus: 'Pending',
-           
+            shippingAddress: shippingAddress
         });
         await newOrder.save();
 
@@ -147,7 +174,6 @@ const verifyPayment = async (req, res) => {
             { $set: { items: [], total: 0, subtotal: 0, shipping: 0 } }
         );
 
-        console.log('Cart cleared after successful payment for user:', order.user);
 
         res.status(200).json({ 
             success: true, 
@@ -184,26 +210,19 @@ const getPaymentDetails = async (req, res) => {
 
 const retryPayment = async (req, res) => {
     try {
-        console.log('Retry payment request received for orderId:', req.params.orderId);
         const orderId = req.params.orderId;
         const order = await Order.findById(orderId);
         
         if (!order) {
-            console.log('Order not found:', orderId);
             return res.status(404).json({
                 success: false,
                 message: 'Order not found'
             });
         }
 
-        console.log('Order found:', {
-            id: order._id,
-            status: order.paymentStatus,
-            amount: order.totalAmount
-        });
+       
 
         if (order.paymentStatus !== 'Pending' && order.paymentStatus !== 'Failed') {
-            console.log('Invalid payment status for retry:', order.paymentStatus);
             return res.status(400).json({
                 success: false,
                 message: 'Payment retry is only available for pending or failed payments'
@@ -220,14 +239,11 @@ const retryPayment = async (req, res) => {
             payment_capture: 1
         };
 
-        console.log('Creating Razorpay order with options:', options);
         const razorpayOrder = await razorpay.orders.create(options);
-        console.log('Razorpay order created:', razorpayOrder);
 
         // Update order with new Razorpay order ID
         order.razorpayOrderId = razorpayOrder.id;
         await order.save();
-        console.log('Order updated with new Razorpay order ID');
 
         res.status(200).json({
             success: true,

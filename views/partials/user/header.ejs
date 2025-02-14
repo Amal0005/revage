@@ -502,8 +502,8 @@
   <body>
   <% 
     const defaultCoupon = {
-      code: 'REVAGE20',
-      percentage: 20
+      code: 'REVAGE',
+      percentage: 5
     };
     const coupon = locals.activeCoupon || defaultCoupon;
   %>
@@ -572,7 +572,6 @@
         if (navbarToggle && navbarContent) {
             navbarToggle.addEventListener('click', function() {
                 navbarContent.classList.toggle('active');
-                console.log('Menu toggled'); // For debugging
             });
     
             // Close menu when clicking outside

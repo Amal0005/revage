@@ -8,10 +8,8 @@ async function resetCoupons() {
         // Drop the collection
         try {
             await Coupon.collection.drop();
-            console.log('Dropped coupons collection');
         } catch (dropError) {
             if (dropError.code === 26) {
-                console.log('Collection does not exist, will create new one');
             } else {
                 throw dropError;
             }
@@ -27,24 +25,20 @@ async function resetCoupons() {
         });
 
         await testCoupon.save();
-        console.log('Created test coupon:', testCoupon.toObject());
 
         // Verify the coupon was saved
         const savedCoupon = await Coupon.findOne({ code: 'TEST123' });
-        console.log('Retrieved test coupon:', savedCoupon ? savedCoupon.toObject() : null);
 
     } catch (error) {
         console.error('Error resetting coupons:', error);
     } finally {
         await mongoose.disconnect();
-        console.log('Disconnected from MongoDB');
     }
 }
 
 // Connect to MongoDB and run the reset
 mongoose.connect(MONGODB_URL)
     .then(() => {
-        console.log('Connected to MongoDB');
         return resetCoupons();
     })
     .catch(error => {

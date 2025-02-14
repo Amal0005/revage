@@ -4,44 +4,40 @@ const Product = require("../../models/productSchema");
 const Wallet = require("../../models/walletSchema");
 const User = require("../../models/userSchema");
 const Cart = require("../../models/cartSchema");
-const PDFDocument = require('pdfkit');
 
 const getOrderDetails = async (req, res) => {
   try {
     const orderId = req.params.orderId;
     const userId = req.session.user;
 
-    console.log('Looking up order:', orderId);
-    console.log('User ID:', userId);
-
     // Find order and populate product details
     const order = await Order.findOne({
       _id: orderId,
       user: userId,
-    }).populate({
+  }).populate({
       path: "items.product",
-      select: "productName productImage salePrice"
-    });
+      select: "productName productImage salePrice regularPrice offer category",
+      populate: {
+          path: 'category',
+          select: 'categoryOffer'
+      }
+  });
 
     if (!order) {
-      console.log('Order not found');
       return res.status(404).render("page-404", { error: "Order not found" });
     }
 
     const user = await User.findById(userId).select('addresses');
     if (!user) {
-      console.log('User not found');
       return res.status(404).render("page-404", { error: "User not found" });
     }
 
-    console.log('Order:', {
-      id: order._id,
-      user: order.user,
-      items: order.items.length,
-      shippingAddress: order.shippingAddress,
-      totalAmount: order.totalAmount,
-      status: order.status
+    console.log('Order before rendering:', {
+      totalAmount: orderId.totalAmount,
+      subtotal: orderId.subtotal,
+      shipping: orderId.shipping
     });
+   
 
     res.render("user/order-details", {
       order: order.toObject(),
@@ -59,7 +55,6 @@ const cancelOrder = async (req, res) => {
     const orderId = req.params.orderId;
     const userId = req.session.user;
 
-    console.log("Attempting to cancel order:", orderId, "for user:", userId);
 
     // First find the order to check status and get items
     const order = await Order.findOne({ _id: orderId, user: userId }).populate(
@@ -67,7 +62,6 @@ const cancelOrder = async (req, res) => {
     );
 
     if (!order) {
-      console.log("Order not found:", orderId);
       return res.status(404).json({
         success: false,
         message: "Order not found",
@@ -75,7 +69,6 @@ const cancelOrder = async (req, res) => {
     }
 
     if (order.status === "Delivered" || order.status === "Cancelled") {
-      console.log("Cannot cancel order with status:", order.status);
       return res.status(400).json({
         success: false,
         message: `Cannot cancel order that is ${order.status.toLowerCase()}`,
@@ -91,9 +84,7 @@ const cancelOrder = async (req, res) => {
             { $inc: { quantity: item.quantity } },
             { new: true }
           );
-          console.log(
-            `Restored ${item.quantity} items to product ${item.product._id}`
-          );
+       
         }
       }
 
@@ -108,32 +99,34 @@ const cancelOrder = async (req, res) => {
         throw new Error('Failed to update order status');
       }
 
-      // Find or create wallet
-      let wallet = await Wallet.findOne({ user: userId });
-      if (!wallet) {
-        wallet = new Wallet({
-          user: userId,
-          balance: 0,
-          transactions: []
+      // Only credit wallet if payment method is not cod
+      if (order.paymentMethod !== 'cod') {
+        // Find or create wallet
+        let wallet = await Wallet.findOne({ user: userId });
+        if (!wallet) {
+          wallet = new Wallet({
+            user: userId,
+            balance: 0,
+            transactions: []
+          });
+        }
+
+        // Add refund transaction
+        const refundAmount = order.totalAmount;
+        wallet.balance += refundAmount;
+        wallet.transactions.push({
+          type: 'credit',
+          amount: refundAmount,
+          description: `Refund for cancelled order #${order._id}`,
+          date: new Date()
         });
+
+        await wallet.save();
       }
-
-      // Add refund to wallet
-      wallet.balance += order.totalAmount;
-      wallet.transactions.push({
-        amount: order.totalAmount,
-        type: 'credit',
-        description: `Refund for cancelled order #${order._id}`,
-        orderId: order._id,
-        date: new Date()
-      });
-
-      await wallet.save();
-      console.log("Order cancelled and amount refunded to wallet:", orderId);
 
       res.json({
         success: true,
-        message: "Order cancelled successfully and amount added to wallet",
+        message: "Order cancelled successfully",
       });
     } catch (error) {
       // If something fails, try to roll back product quantities
@@ -147,9 +140,7 @@ const cancelOrder = async (req, res) => {
               { $inc: { quantity: -item.quantity } }, // Subtract the quantity back
               { new: true }
             );
-            console.log(
-              `Rolled back ${item.quantity} items from product ${item.product._id}`
-            );
+          
           } catch (rollbackError) {
             console.error("Error during rollback:", rollbackError);
           }
@@ -187,18 +178,13 @@ const trackOrder = async (req, res) => {
 
 const returnOrder = async (req, res) => {
   try {
-    console.log('Return order request received:', {
-      orderId: req.params.orderId,
-      body: req.body,
-      sessionUserId: req.session?.user
-    });
+ 
 
     const orderId = req.params.orderId;
     const { reason, otherReason, comments } = req.body;
 
     // Validate return reason
     if (!reason) {
-      console.log('Return failed: No reason provided');
       return res.status(400).json({ 
         success: false,
         error: 'Return reason is required' 
@@ -207,7 +193,6 @@ const returnOrder = async (req, res) => {
 
     // Validate other reason if reason is 'other'
     if (reason === 'other' && !otherReason) {
-      console.log('Return failed: Other reason not provided when reason is "other"');
       return res.status(400).json({ 
         success: false,
         error: 'Please specify the other reason for return' 
@@ -217,24 +202,16 @@ const returnOrder = async (req, res) => {
     // Find the order
     const order = await Order.findById(orderId);
     if (!order) {
-      console.log('Return failed: Order not found', { orderId });
       return res.status(404).json({ 
         success: false,
         error: 'Order not found' 
       });
     }
 
-    console.log('Order found:', {
-      orderId: order._id,
-      orderUserId: order.user,
-      sessionUserId: req.session?.user,
-      status: order.status,
-      totalAmount: order.totalAmount
-    });
+ 
 
     // Check if user is authenticated
     if (!req.session?.user) {
-      console.log('Return failed: No user in session');
       return res.status(401).json({ 
         success: false,
         error: 'Please login to return this order' 
@@ -245,14 +222,8 @@ const returnOrder = async (req, res) => {
     const orderUserId = order.user.toString();
     const sessionUserId = req.session.user.toString();
     
-    console.log('Comparing user IDs:', {
-      orderUserId,
-      sessionUserId,
-      isMatch: orderUserId === sessionUserId
-    });
 
     if (orderUserId !== sessionUserId) {
-      console.log('Return failed: User mismatch');
       return res.status(403).json({ 
         success: false,
         error: 'Unauthorized to return this order' 
@@ -265,15 +236,9 @@ const returnOrder = async (req, res) => {
     const currentDate = new Date();
     const daysSinceOrder = Math.floor((currentDate - orderDate) / (1000 * 60 * 60 * 24));
 
-    console.log('Checking return eligibility:', {
-      orderDate,
-      currentDate,
-      daysSinceOrder,
-      returnWindow
-    });
+
 
     if (daysSinceOrder > returnWindow) {
-      console.log('Return failed: Return window expired');
       return res.status(400).json({ 
         success: false,
         error: 'Return window has expired' 
@@ -283,7 +248,6 @@ const returnOrder = async (req, res) => {
     // Check if order status is appropriate for return
     const validStatusForReturn = ['Delivered'];
     if (!validStatusForReturn.includes(order.status)) {
-      console.log('Return failed: Invalid order status', { status: order.status });
       return res.status(400).json({ 
         success: false,
         error: 'Order is not eligible for return' 
@@ -313,11 +277,6 @@ const returnOrder = async (req, res) => {
         throw new Error('Failed to update order');
       }
 
-      console.log('Order updated successfully:', {
-        orderId: updatedOrder._id,
-        status: updatedOrder.status,
-        returnRequest: updatedOrder.returnRequest
-      });
 
       res.status(200).json({
         success: true,
@@ -423,7 +382,9 @@ const checkout = async (req, res) => {
         const order = new Order({
             user: userId,
             items: cart.items,
-            total: cart.total,
+            subtotal: cart.subtotal,
+            shipping: cart.shipping,
+            totalAmount: cart.total,
             shippingAddress: user.addresses[addressIndex],
             paymentMethod: paymentMethod,
             status: paymentMethod === 'wallet' ? 'Processing' : 'Pending',

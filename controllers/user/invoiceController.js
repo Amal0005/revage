@@ -6,32 +6,36 @@ const generateInvoice = async (req, res) => {
         const orderId = req.params.orderId;
         const userId = req.session.user;
 
-      
         if (!userId) {
-            console.log('Auth failed - no userId in session');
             return res.status(401).json({ success: false, message: "Unauthorized access" });
         }
 
+        // Fetch order with all necessary data
         const order = await Order.findOne({ _id: orderId, user: userId })
             .populate({
                 path: "items.product",
-                select: "productName productImage salePrice",
+                select: "productName productImage regularPrice salePrice",
             })
             .populate({
                 path: "user",
                 select: "name email",
-            });
-            console.log('Debug - Order shipping details:', order.shippingAddress);
-            console.log('Full order data:', JSON.stringify(order, null, 2));
+            })
+            .lean();  // Convert to plain JavaScript object
+           
         if (!order) {
-            console.log('Order not found:', { orderId, userId });
             return res.status(404).json({ success: false, message: "Order not found" });
         }
 
-        console.log('Order found, generating PDF...');
+        // Ensure shipping address exists and has all required fields
+        if (!order.shippingAddress) {
+            return res.status(400).json({ success: false, message: "Shipping address not found" });
+        }
 
-        // Create PDF document
-        const doc = new PDFDocument({ margin: 50 });
+        // Create PDF document with smaller margins
+        const doc = new PDFDocument({ 
+            margin: 30,
+            size: 'A4'
+        });
 
         // Set response headers
         res.setHeader("Content-Type", "application/pdf");
@@ -41,25 +45,18 @@ const generateInvoice = async (req, res) => {
         // Pipe PDF output to response
         doc.pipe(res);
 
-        console.log('Starting PDF generation...');
-
         // Add content to PDF
-        addHeader(doc);
-        addOrderDetails(doc, order);
-        addItemsTable(doc, order.items);
-        addSummary(doc, order);
-        addFooter(doc);
-
-        console.log('PDF generation complete, ending document...');
+        await addHeader(doc);
+        await addOrderDetails(doc, order);
+        await addItemsTable(doc, order.items);
+        await addSummary(doc, order);
+        await addFooter(doc);
         
         // End the document
         doc.end();
 
-        console.log('PDF generation success');
-
     } catch (error) {
         console.error('PDF generation error:', error);
-        console.error('Stack trace:', error.stack);
         res.status(500).json({
             success: false,
             message: "Failed to generate invoice",
@@ -68,110 +65,182 @@ const generateInvoice = async (req, res) => {
     }
 };
 
-
-
-// Helper functions for PDF generation
 const addHeader = async (doc) => {
-    doc.fontSize(20).text("REVAGE", { align: "center" });
-    doc.moveDown();
-    doc.fontSize(16).text("Tax Invoice", { align: "center" });
-    doc.moveDown();
+    doc.fontSize(16)
+       .font('Helvetica-Bold')
+       .text("REVAGE", { align: "center" });
+    
+    doc.fontSize(12)
+       .font('Helvetica')
+       .text("TAX INVOICE", { align: "center" });
+    
+    doc.moveDown(0.3);
 };
 
-      
 const addOrderDetails = async (doc, order) => {
-    doc.fontSize(12);
+    const startY = doc.y;
     
-    // Create two-column layout for order details
-    const leftColumn = {
-        text: [
-            `Invoice Date: ${new Date().toLocaleDateString('en-IN')}`,
-            `Order ID: ${order._id}`,
-            `Order Date: ${new Date(order.orderDate).toLocaleDateString('en-IN')}`
-        ],
-        x: 50
-    };
+    // Left column
+    doc.fontSize(8)
+       .font('Helvetica-Bold')
+       .text('Invoice Details:', 30, startY)
+       .font('Helvetica')
+       .moveDown(0.2);
+    
+    doc.text(`Invoice Date: ${new Date().toLocaleDateString('en-IN')}`)
+       .text(`Order ID: ${order._id}`)
+       .text(`Order Date: ${new Date(order.orderDate).toLocaleDateString('en-IN')}`);
 
-    const rightColumn = {
-        text: [
-            'Bill To:',
-            `${order.shippingAddress?.fullName || 'N/A'}`,
-            `${order.shippingAddress?.address || 'N/A'}`,
-            `${order.shippingAddress?.city || 'N/A'}, ${order.shippingAddress?.state || 'N/A'} ${order.shippingAddress?.pincode || 'N/A'}`,
-            `Phone: ${order.shippingAddress?.phone || 'N/A'}`
-        ],
-        x: doc.page.width / 2
-    };
+    // Right column - Billing Address
+    doc.fontSize(8)
+       .font('Helvetica-Bold')
+       .text('Bill To:', 300, startY)
+       .font('Helvetica')
+       .moveDown(0.2);
 
-    const y = doc.y;
-    leftColumn.text.forEach(text => {
-        doc.text(text, leftColumn.x, doc.y);
+    // Get address from order
+    const address = order.shippingAddress || {};
+    
+    // Build address lines with proper checks
+    const addressLines = [
+        address.name || 'N/A',
+        address.address || 'N/A',
+        `${[
+            address.city || '',
+            address.state || '',
+            address.pincode || ''
+        ].filter(Boolean).join(', ') || 'N/A'}`,
+        `Phone: ${address.phone || 'N/A'}`
+    ];
+
+    // Add each line of the address
+    addressLines.forEach(line => {
+        doc.text(line, 300);
     });
 
-    doc.y = y;
-    rightColumn.text.forEach(text => {
-        doc.text(text, rightColumn.x, doc.y);
-    });
-
-    doc.moveDown(2);
+    doc.moveDown(0.3);
 };
 
 const addItemsTable = async (doc, items) => {
-    // Table headers
-    const headers = ['Item', 'Quantity', 'Price', 'Total'];
-    const columnWidth = (doc.page.width - 100) / headers.length;
+    // Table configuration
+    const tableTop = doc.y + 5;
+    const itemX = 30;
+    const qtyX = 280;
+    const priceX = 350;
+    const totalX = 450;
+
+    // Add table headers
+    doc.font('Helvetica-Bold')
+       .fontSize(8);
     
-    headers.forEach((header, i) => {
-        doc.text(header, 50 + (i * columnWidth), doc.y, { width: columnWidth, align: 'left' });
-    });
+    doc.text('Item', itemX, tableTop, { width: 240 })
+       .text('Qty', qtyX, tableTop, { width: 50, align: 'center' })
+       .text('Price', priceX, tableTop, { width: 80, align: 'right' })
+       .text('Total', totalX, tableTop, { width: 80, align: 'right' });
 
-    doc.moveDown();
-    doc.lineCap('butt')
-       .moveTo(50, doc.y)
-       .lineTo(doc.page.width - 50, doc.y)
+    // Add a line below headers
+    doc.moveTo(30, tableTop + 15)
+       .lineTo(530, tableTop + 15)
+       .lineWidth(0.5)
        .stroke();
-    doc.moveDown();
 
-    // Table rows
+    // Reset for items
+    doc.font('Helvetica').fontSize(8);
+    let y = tableTop + 25;
+
+    // Add items
     items.forEach(item => {
-        const y = doc.y;
-        doc.text(item.product.productName, 50, y, { width: columnWidth });
-        doc.text(item.quantity.toString(), 50 + columnWidth, y, { width: columnWidth });
-        doc.text(`₹${item.product.salePrice.toFixed(2)}`, 50 + (columnWidth * 2), y, { width: columnWidth });
-        doc.text(`₹${(item.quantity * item.product.salePrice).toFixed(2)}`, 50 + (columnWidth * 3), y, { width: columnWidth });
-        doc.moveDown();
+        const price = item.price || (item.product && item.product.salePrice) || 0;
+        const total = price * item.quantity;
+        
+        doc.text(item.product.productName, itemX, y, { width: 240 })
+           .text(item.quantity.toString(), qtyX, y, { width: 50, align: 'center' })
+           .text(`₹${price.toLocaleString('en-IN')}`, priceX, y, { width: 80, align: 'right' })
+           .text(`₹${total.toLocaleString('en-IN')}`, totalX, y, { width: 80, align: 'right' });
+        y += 15;
     });
+
+    // Add a line after items
+    doc.moveTo(30, y + 5)
+       .lineTo(530, y + 5)
+       .lineWidth(0.5)
+       .stroke();
+
+    // Update the y position for next section
+    doc.y = y + 15;
 };
 
 const addSummary = async (doc, order) => {
-    doc.moveDown();
-    const summaryX = doc.page.width - 200;
+    const summaryX = 350;
+    const valueX = 450;
+    const y = doc.y;
     
-    doc.text('Summary:', summaryX);
-    doc.moveDown();
+    doc.fontSize(8);
     
-    doc.text(`Subtotal: ₹${order.subtotal.toFixed(2)}`, summaryX);
+    // Helper function for summary rows
+    const addSummaryRow = (label, value, options = {}) => {
+        const textColor = options.color || 'black';
+        doc.font(options.bold ? 'Helvetica-Bold' : 'Helvetica')
+           .fillColor(textColor)
+           .text(label, summaryX, doc.y, { width: 100, align: 'left' })
+           .text(value, valueX, doc.y, { width: 80, align: 'right' });
+        doc.moveDown(0.3);
+        doc.fillColor('black'); // Reset color
+    };
     
-    if (order.discount) {
-        doc.text(`Discount: -₹${order.discount.toFixed(2)}`, summaryX);
+    // Add summary items in order: Subtotal, Coupon, Shipping
+    addSummaryRow('Subtotal:', `₹${order.subtotal.toLocaleString('en-IN')}`);
+    
+    // Show coupon discount if applied
+    if (order.coupon && order.coupon.discountAmount) {
+        const discountLabel = order.coupon.code ? 
+            `Coupon (${order.coupon.code}):` : 
+            'Coupon:';
+        addSummaryRow(
+            discountLabel,
+            `-₹${order.coupon.discountAmount.toLocaleString('en-IN')}`,
+            { color: 'rgb(0, 128, 0)' }  // Using RGB green color
+        );
     }
     
-    if (order.shippingCost) {
-        doc.text(`Shipping: ${order.shippingCost.toFixed(2)}`, summaryX);
-    }
+    addSummaryRow('Shipping:', order.shipping ? `${order.shipping.toLocaleString('en-IN')}` : 'Free');
     
-    doc.moveDown();
-    doc.fontSize(14).text(`Total:  ${order.totalAmount}`, summaryX, doc.y, { bold: true });
+    // Add line before total
+    doc.moveTo(summaryX, doc.y)
+       .lineTo(530, doc.y)
+       .lineWidth(0.5)
+       .stroke();
+    doc.moveDown(0.3);
+    
+    // Add total
+    addSummaryRow('Total Amount:', `${order.totalAmount.toLocaleString('en-IN')}`, { bold: true });
+    addSummaryRow('Payment Method:', order.paymentMethod.toUpperCase());
 };
 
 const addFooter = async (doc) => {
-    doc.fontSize(10);
-    doc.text(
-        'Thank you for shopping with REVAGE!',
-        50,
-        doc.page.height - 50,
-        { align: 'center' }
-    );
+    // Position footer near bottom of page
+    const footerY = doc.page.height - 60;
+    
+    // Add a line above footer
+    doc.moveTo(30, footerY)
+       .lineTo(530, footerY)
+       .lineWidth(0.5)
+       .stroke();
+    
+    // Add footer text
+    doc.fontSize(8)
+       .font('Helvetica')
+       .text('Thank you for shopping with REVAGE!', 30, footerY + 10, 
+            { align: 'center', width: doc.page.width - 60 });
+    
+    // Add terms and conditions
+    doc.fontSize(6)
+       .fillColor('grey')
+       .text('This is a computer-generated invoice and does not require a signature.',
+            30, footerY + 25,
+            { align: 'center', width: doc.page.width - 60 });
+    
+    doc.fillColor('black');
 };
 
 // Frontend helper function

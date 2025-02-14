@@ -50,7 +50,6 @@ const checkoutController = {
 
             // Calculate totals with only valid items
             let subtotal = 0;
-            console.log('Starting total calculation...');
             
             for (const item of validItems) {
                 const product = item.product;
@@ -90,15 +89,7 @@ const checkoutController = {
                 const categoryOffer = product.category && product.category.categoryOffer ? Number(product.category.categoryOffer) : 0;
                 const bestOffer = Math.max(productOffer, categoryOffer);
 
-                console.log('Processing item:', {
-                    productId: product._id,
-                    productName: product.productName,
-                    basePrice,
-                    quantity,
-                    productOffer,
-                    categoryOffer,
-                    bestOffer
-                });
+             
 
                 // Calculate final price with offer
                 let finalPrice = basePrice;
@@ -109,12 +100,7 @@ const checkoutController = {
                 finalPrice = Math.round(finalPrice); // Round to nearest rupee
 
                 const itemTotal = finalPrice * quantity;
-                console.log('Item calculation:', {
-                    basePrice,
-                    finalPrice,
-                    quantity,
-                    itemTotal
-                });
+          
 
                 subtotal += itemTotal;
             }
@@ -127,7 +113,6 @@ const checkoutController = {
                 });
             }
 
-            console.log('Subtotal calculated:', subtotal);
 
             const shipping = 0; // Free delivery
             let total = subtotal;
@@ -150,11 +135,7 @@ const checkoutController = {
                     couponDiscount = Math.round(discountValue);
                 }
 
-                console.log('Coupon calculation:', {
-                    type: req.body.discountType,
-                    value: discountValue,
-                    calculatedDiscount: couponDiscount
-                });
+               
 
                 total = Math.max(0, subtotal - couponDiscount);
             }
@@ -172,11 +153,6 @@ const checkoutController = {
                 });
             }
 
-            console.log('Final amounts:', {
-                subtotal,
-                couponDiscount,
-                total
-            });
 
             // Update cart with only valid items
             cart.items = validItems;
@@ -201,7 +177,6 @@ const checkoutController = {
 
     processCheckout: async (req, res) => {
         try {
-            console.log('Processing checkout with data:', req.body);
             const userId = req.session.user;
             const { addressIndex, paymentMethod } = req.body;
 
@@ -274,10 +249,8 @@ const checkoutController = {
                 }
             }
 
-            console.log('Cart found:', cart);
 
             // Calculate totals
-            console.log('Starting total calculation...');
             
             let subtotal = 0;
             for (const item of cart.items) {
@@ -318,15 +291,7 @@ const checkoutController = {
                 const categoryOffer = product.category && product.category.categoryOffer ? Number(product.category.categoryOffer) : 0;
                 const bestOffer = Math.max(productOffer, categoryOffer);
 
-                console.log('Processing item:', {
-                    productId: product._id,
-                    productName: product.productName,
-                    basePrice,
-                    quantity,
-                    productOffer,
-                    categoryOffer,
-                    bestOffer
-                });
+               
 
                 // Calculate final price with offer
                 let finalPrice = basePrice;
@@ -337,12 +302,7 @@ const checkoutController = {
                 finalPrice = Math.round(finalPrice); // Round to nearest rupee
 
                 const itemTotal = finalPrice * quantity;
-                console.log('Item calculation:', {
-                    basePrice,
-                    finalPrice,
-                    quantity,
-                    itemTotal
-                });
+             
 
                 subtotal += itemTotal;
             }
@@ -355,7 +315,6 @@ const checkoutController = {
                 });
             }
 
-            console.log('Subtotal calculated:', subtotal);
 
             const shipping = 0; // Free delivery
             let total = subtotal;
@@ -378,11 +337,7 @@ const checkoutController = {
                     couponDiscount = Math.round(discountValue);
                 }
 
-                console.log('Coupon calculation:', {
-                    type: req.body.discountType,
-                    value: discountValue,
-                    calculatedDiscount: couponDiscount
-                });
+               
 
                 total = Math.max(0, subtotal - couponDiscount);
             }
@@ -400,11 +355,7 @@ const checkoutController = {
                 });
             }
 
-            console.log('Final amounts:', {
-                subtotal,
-                couponDiscount,
-                total
-            });
+         
 
             // Validate COD restriction
             if (paymentMethod === 'cod' && total > 1000) {
@@ -444,6 +395,8 @@ const checkoutController = {
                     if (bestOffer > 0) {
                         const discountAmount = (price * bestOffer) / 100;
                         price = price - discountAmount;
+                        console.log(price);
+                        
                     }
 
                     return {
@@ -472,7 +425,8 @@ const checkoutController = {
                 paymentStatus: paymentMethod === 'wallet' ? 'Completed' : 'Pending',
                 orderDate: new Date()
             };
-
+            
+              
             // If coupon was applied, add it to the order
             if (req.body.couponCode) {
                 orderData.coupon = {
@@ -483,13 +437,11 @@ const checkoutController = {
                 };
             }
 
-            console.log('Creating order with data:', orderData);
             const order = new Order(orderData);
             await order.save();
 
             // If wallet payment, process it
             if (paymentMethod === 'wallet') {
-                console.log('Processing wallet payment');
                 const walletAmount = parseFloat(order.totalAmount);
                 
                 if (isNaN(walletAmount)) {

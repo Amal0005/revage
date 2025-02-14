@@ -20,6 +20,18 @@ const cartSchema = new Schema({
             default: 1
         }
     }],
+    subtotal: {
+        type: Number,
+        default: 0
+    },
+    shipping: {
+        type: Number,
+        default: 40
+    },
+    total: {
+        type: Number,
+        default: 0
+    },
     createdAt: {
         type: Date,
         default: Date.now

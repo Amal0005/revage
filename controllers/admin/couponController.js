@@ -16,7 +16,6 @@ const getCoupons=async(req,res)=>{
 
 const createCoupon = async (req, res) => {
     try {
-        console.log('Received coupon data:', req.body);
         
         const { 
             code, 
@@ -28,17 +27,10 @@ const createCoupon = async (req, res) => {
 
         // Log all existing coupons for debugging
         const allCoupons = await Coupon.find({}, 'code');
-        console.log('All existing coupon codes:', allCoupons.map(c => ({ id: c._id, code: c.code })));
 
         // Validate required fields
         if (!code || !discountType || !discount || !minPurchase || !expiryDate) {
-            console.log('Missing required fields:', {
-                code: !!code,
-                discountType: !!discountType,
-                discount: !!discount,
-                minPurchase: !!minPurchase,
-                expiryDate: !!expiryDate
-            });
+        
             return res.status(400).json({ 
                 message: 'All fields are required',
                 missingFields: {
@@ -53,21 +45,15 @@ const createCoupon = async (req, res) => {
 
         // Clean and format the coupon code
         const cleanCode = code.trim().toUpperCase();
-        console.log('Attempting to create coupon with code:', cleanCode);
 
         // Check existing coupon with exact match
         const existingCoupon = await Coupon.findOne({
             code: cleanCode
         });
         
-        console.log('Existing coupon check result:', existingCoupon);
         
         if (existingCoupon) {
-            console.log('Coupon code already exists:', {
-                attempted: cleanCode,
-                existing: existingCoupon.code,
-                existingId: existingCoupon._id
-            });
+          
             return res.status(400).json({ 
                 message: 'Coupon code already exists',
                 attempted: cleanCode,
@@ -77,14 +63,12 @@ const createCoupon = async (req, res) => {
 
         // Validate discount based on type
         if (discountType === 'percentage' && (discount <= 0 || discount > 100)) {
-            console.log('Invalid percentage discount:', discount);
             return res.status(400).json({
                 message: 'Percentage discount must be between 1 and 100'
             });
         }
 
         if (discountType === 'fixed' && discount <= 0) {
-            console.log('Invalid fixed discount:', discount);
             return res.status(400).json({
                 message: 'Fixed discount must be greater than 0'
             });
@@ -99,30 +83,22 @@ const createCoupon = async (req, res) => {
             expiryDate: new Date(expiryDate)
         });
 
-        console.log('Attempting to save coupon:', newCoupon.toObject());
 
         try {
             // Try to save the coupon
             const savedCoupon = await newCoupon.save();
-            console.log('Coupon saved successfully:', savedCoupon.toObject());
             
             res.status(201).json({ 
                 message: 'Coupon created successfully',
                 coupon: savedCoupon 
             });
         } catch (saveError) {
-            console.error('Error saving coupon:', {
-                error: saveError.message,
-                code: saveError.code,
-                keyPattern: saveError.keyPattern,
-                keyValue: saveError.keyValue
-            });
+           
             
             // Check if it's a duplicate key error
             if (saveError.code === 11000) {
                 // Double-check if the coupon exists (race condition)
                 const duplicateCoupon = await Coupon.findOne({ code: cleanCode });
-                console.log('Found duplicate coupon:', duplicateCoupon);
                 
                 return res.status(400).json({
                     message: 'Coupon code already exists',

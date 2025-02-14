@@ -7,6 +7,9 @@ body {
     margin: 0;
     background-color: #f8f9fa;
 }
+.content-title{
+    margin-left: -70px;
+}
 
 
 @keyframes bounce {
@@ -366,16 +369,14 @@ body.modal-open {
                         <!-- Product Name -->
                         <div class="mb-4">
                             <label class="form-label">Product Name</label>
-                            <input type="text" name="productName" class="form-control" required
-                                   minlength="3" maxlength="100">
+                            <input type="text" name="productName" class="form-control">
                             <div id="productName-error" class="error-message"></div>
                         </div>
 
                         <!-- Description -->
                         <div class="mb-4">
                             <label class="form-label">Description</label>
-                            <textarea name="description" class="form-control" rows="4" required
-                                      minlength="10" maxlength="1000"></textarea>
+                            <textarea name="description" class="form-control" rows="4"></textarea>
                             <div id="description-error" class="error-message"></div>
                         </div>
 
@@ -384,24 +385,21 @@ body.modal-open {
                             <div class="col-lg-4">
                                 <div class="mb-4">
                                     <label class="form-label">Regular Price</label>
-                                    <input type="number" name="regularPrice" class="form-control" required
-                                           min="0" step="0.01">
+                                    <input type="number" name="regularPrice" class="form-control">
                                     <div id="regularPrice-error" class="error-message"></div>
                                 </div>
                             </div>
                             <div class="col-lg-4">
                                 <div class="mb-4">
                                     <label class="form-label">Sale Price</label>
-                                    <input type="number" name="salePrice" class="form-control"
-                                           min="0" step="0.01">
+                                    <input type="number" name="salePrice" class="form-control">
                                     <div id="salePrice-error" class="error-message"></div>
                                 </div>
                             </div>
                             <div class="col-lg-4">
                                 <div class="mb-4">
                                     <label class="form-label">Quantity</label>
-                                    <input type="number" name="quantity" class="form-control" required
-                                           min="0" max="10000">
+                                    <input type="number" name="quantity" class="form-control">
                                     <div id="quantity-error" class="error-message"></div>
                                 </div>
                             </div>
@@ -410,15 +408,14 @@ body.modal-open {
                         <!-- Color -->
                         <div class="mb-4">
                             <label class="form-label">Color</label>
-                            <input type="text" name="color" class="form-control" required
-                                   minlength="2" maxlength="50">
+                            <input type="text" name="color" class="form-control">
                             <div id="color-error" class="error-message"></div>
                         </div>
 
                         <!-- Category -->
                         <div class="mb-4">
                             <label class="form-label">Category</label>
-                            <select name="category" class="form-select" required>
+                            <select name="category" class="form-select" >
                                 <option value="">Select Category</option>
                                 <% categories.forEach(function(category) { %>
                                     <option value="<%= category._id %>"><%= category.name %></option>
@@ -440,7 +437,7 @@ body.modal-open {
                             <div class="image-input-container">
                                 <i class="fas fa-cloud-upload-alt"></i>
                                 <input type="file" name="images" class="form-control" accept="image/*"
-                                       onchange="handleImageSelect(this, 'preview1', 0)" required>
+                                       onchange="handleImageSelect(this, 'preview1', 0)" >
                                 <small class="text-muted">Main product image (required)</small>
                                 <div class="preview-container">
                                     <img id="preview1" class="image-preview">
@@ -448,6 +445,7 @@ body.modal-open {
                             </div>
 
                             <!-- Image 2 -->
+                             
                             <div class="image-input-container">
                                 <i class="fas fa-cloud-upload-alt"></i>
                                 <input type="file" name="images" class="form-control" accept="image/*"
@@ -633,14 +631,12 @@ body.modal-open {
                 return false;
             }
 
-            console.log('Submitting form data...');
             const response = await fetch(this.action, {
                 method: 'POST',
                 body: formData
             });
 
             const result = await response.json();
-            console.log('Server response:', result);
 
             if (result.success) {
                 await Swal.fire({

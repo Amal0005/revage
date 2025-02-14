@@ -259,7 +259,6 @@ const applyCoupon = async (req, res) => {
 
         const finalTotal = cartTotal - discountAmount;
 
-        console.log('Coupon applied successfully');
         res.status(200).json({ discountAmount, finalTotal, message: 'Coupon applied successfully!' });
     } catch (error) {
         console.error('Unexpected error in applyCoupon:', error);

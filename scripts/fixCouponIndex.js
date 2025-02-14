@@ -5,7 +5,6 @@ async function fixCouponIndex() {
     try {
         // Drop existing indexes
         await Coupon.collection.dropIndexes();
-        console.log('Dropped existing indexes');
 
         // Create new case-insensitive index
         await Coupon.collection.createIndex(
@@ -15,11 +14,9 @@ async function fixCouponIndex() {
                 collation: { locale: 'en', strength: 2 }
             }
         );
-        console.log('Created new case-insensitive index');
 
         // List all indexes to verify
         const indexes = await Coupon.collection.getIndexes();
-        console.log('Current indexes:', indexes);
 
     } catch (error) {
         console.error('Error fixing indexes:', error);
@@ -31,7 +28,6 @@ async function fixCouponIndex() {
 // Connect to MongoDB and run the fix
 mongoose.connect(process.env.MONGODB_URL)
     .then(() => {
-        console.log('Connected to MongoDB');
         return fixCouponIndex();
     })
     .catch(error => {

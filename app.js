@@ -4,6 +4,8 @@ const app = express()
 const path =require("path");
 const session=require("express-session");
 const passport=require("./config/passport")
+const multer = require('multer');
+
 
 const env=require("dotenv").config()
 const db =require("./config/db")
@@ -47,6 +49,8 @@ app.set('view engine', 'ejs');
 
 app.use("/",userRouter)
 app.use("/admin",adminRouter)
+
+
 
 
 const PORT=1111 || process.env.PORT

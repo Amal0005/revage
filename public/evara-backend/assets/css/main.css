@@ -1165,6 +1165,7 @@ textarea.form-control {
 }
 
 .card {
+    margin-left: -170px;
     margin-bottom: 24px;
     -webkit-box-shadow: none;
     box-shadow: none;

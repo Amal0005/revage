@@ -20,25 +20,21 @@ const getProductAddPage = async (req, res) => {
 
 const addProducts = async (req, res) => {
     try {
-        console.log('Adding product...');
-        console.log('Request body:', req.body);
+     
         
         const category = await Category.findById(req.body.category);
         if (!category) {
-            console.log('Invalid category:', req.body.category);
             return res.status(400).json({ error: "Invalid category" });
         }
 
         const existingProduct = await Product.findOne({ productName: req.body.productName });
         if (existingProduct) {
-            console.log('Product already exists:', req.body.productName);
             return res.status(400).json({ error: "Product name already exists" });
         }
 
         let images = [];
 
         if (req.files && req.files.length > 0) {
-            console.log('Processing traditional file uploads:', req.files.length);
             const uploadDir = path.join(__dirname, '../../public/uploads/product-images');
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
@@ -59,7 +55,6 @@ const addProducts = async (req, res) => {
                         .toFile(imagePath);
 
                     images.push(filename);
-                    console.log('Processed uploaded file:', filename);
                 } catch (error) {
                     console.error('Error processing uploaded file:', error);
                 }
@@ -90,7 +85,6 @@ const addProducts = async (req, res) => {
                         .toFile(path.join(uploadDir, filename));
 
                     images.push(filename);
-                    console.log('Processed cropped image:', filename);
                 } catch (error) {
                     console.error('Error processing cropped image:', error);
                 }
@@ -98,7 +92,6 @@ const addProducts = async (req, res) => {
         }
 
         if (images.length === 0) {
-            console.log('No images provided');
             return res.status(400).json({ error: "At least one image is required" });
         }
 
@@ -114,12 +107,10 @@ const addProducts = async (req, res) => {
             status: "Available"
         };
 
-        console.log('Creating product with data:', productData);
 
         const product = new Product(productData);
         await product.save();
         
-        console.log('Product saved successfully:', product);
 
         res.status(201).json({ success: true, message: "Product added successfully" });
 
@@ -230,7 +221,6 @@ const getEditProduct = async (req, res) => {
 
 const deleteSingleImage = async (req, res) => {
     try {
-        console.log('Delete image request:', req.body);
         const { productId, imageIndex } = req.body;
 
         const product = await Product.findById(productId);
@@ -265,7 +255,6 @@ const deleteSingleImage = async (req, res) => {
 
 const editProduct = async (req, res) => {
     try {
-        console.log('Edit product request received:', req.body);
 
         const productId = req.body.productId;
         if (!productId) {
@@ -308,7 +297,6 @@ const editProduct = async (req, res) => {
         let newImages = [...product.productImage];
 
         if (req.files && req.files.length > 0) {
-            console.log('Processing uploaded files:', req.files.length);
             const uploadDir = path.join(__dirname, '../../public/uploads/product-images');
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
@@ -322,7 +310,6 @@ const editProduct = async (req, res) => {
                     const filename = `product-${timestamp}-${file.originalname}`;
                     const imagePath = path.join(uploadDir, filename);
 
-                    console.log(`Saving uploaded file: ${filename}`);
 
                     await sharp(file.buffer)
                         .resize(440, 440, {
@@ -343,7 +330,6 @@ const editProduct = async (req, res) => {
             const croppedImage = req.body[`croppedImage${i}`];
             if (croppedImage && croppedImage.startsWith('data:image')) {
                 try {
-                    console.log(`Processing cropped image ${i}`);
 
                     const base64Data = croppedImage.replace(/^data:image\/\w+;base64,/, '');
                     const imageBuffer = Buffer.from(base64Data, 'base64');
@@ -378,7 +364,6 @@ const editProduct = async (req, res) => {
             updatedAt: new Date()
         };
 
-        console.log('Updating product with data:', updateData);
 
         const updatedProduct = await Product.findByIdAndUpdate(
             productId,
@@ -390,7 +375,6 @@ const editProduct = async (req, res) => {
             return res.status(500).json({ error: "Failed to update product" });
         }
 
-        console.log('Product updated successfully:', updatedProduct);
         res.status(200).json({ success: true, message: "Product updated successfully", product: updatedProduct });
 
     } catch (error) {

@@ -397,8 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const orderId = this.dataset.orderId; // Order ID from data attribute
             const newStatus = this.value;
 
-            console.log("Current Status:", currentStatus);
-            console.log("New Status:", newStatus);
+           
 
             // Check if the new status is a valid forward transition
             if (statusOrder.indexOf(newStatus) < statusOrder.indexOf(currentStatus)) {
@@ -408,7 +407,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     icon: 'warning',
                     confirmButtonText: 'OK',
                 });
-                console.log("Invalid Transition: Reverting to", currentStatus);
                 this.value = currentStatus; // Revert to the current status
                 return;
             }
@@ -424,7 +422,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 const data = await response.json();
-                console.log("Server Response:", data);
 
                 if (data.success) {
                     Swal.fire({

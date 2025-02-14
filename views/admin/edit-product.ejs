@@ -230,7 +230,6 @@
                 });
 
                 const data = await response.json();
-                console.log('Delete response:', data);
 
                 if (data.success) {
                     // Remove the image element from DOM
@@ -275,7 +274,6 @@
 
             // Get form data
             const formData = new FormData(this);
-            console.log('Form data:', Object.fromEntries(formData));
 
             // Add cropped images if any
             for (let i = 1; i <= 3; i++) {
@@ -291,7 +289,6 @@
             });
 
             const result = await response.json();
-            console.log('Update response:', result);
 
             if (result.success) {
                 await Swal.fire({

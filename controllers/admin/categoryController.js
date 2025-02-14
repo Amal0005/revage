@@ -6,19 +6,16 @@ const categoryInfo = async (req, res) => {
         const limit = 4;
         const skip = (page - 1) * limit;
 
-        console.log(`Fetching categories with skip: ${skip}, limit: ${limit}`);
 
         const categoryData = await Category.find({})
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
 
-        console.log(`Category data fetched: ${categoryData}`);
 
         const totalCategories = await Category.countDocuments();
         const totalPages = Math.ceil(totalCategories / limit);
 
-        console.log(`Total categories: ${totalCategories}, Total pages: ${totalPages}`);
 
         res.render("admin/category", {
             cat: categoryData,
@@ -81,7 +78,6 @@ const getEditCategory = async (req, res) => {
         const categoryId = req.query.id;
         const category = await Category.findById(categoryId);
         if (!category) {
-            console.log("Category not found");
             return res.status(404).send("Category not found");
         }
         res.render("admin/edit-category", { category });

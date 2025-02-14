@@ -91,7 +91,6 @@ const orderController = {
                             order._id,
                             `Refund for returned COD order #${order._id}`
                         );
-                        console.log(`Credited ₹${order.totalAmount} to wallet for COD return`);
                     } else if (order.paymentStatus === 'Completed') {
                         // For online payments, credit to wallet
                         await creditToWallet(
@@ -100,7 +99,6 @@ const orderController = {
                             order._id,
                             `Refund for returned order #${order._id}`
                         );
-                        console.log(`Credited ₹${order.totalAmount} to wallet for online payment return`);
                     }
                 } else if (status === 'Cancelled' && order.paymentStatus === 'Completed') {
                     // For cancellations, only credit if payment was completed
@@ -110,7 +108,6 @@ const orderController = {
                         order._id,
                         `Refund for cancelled order #${order._id}`
                     );
-                    console.log(`Credited ₹${order.totalAmount} to wallet for cancellation`);
                 }
             }
             // For new orders, reduce quantities

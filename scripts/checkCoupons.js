@@ -8,16 +8,8 @@ async function checkCoupons() {
     try {
         // Get all coupons
         const coupons = await Coupon.find({}).lean();
-        console.log('\nAll coupons in database:');
         coupons.forEach(coupon => {
-            console.log({
-                id: coupon._id,
-                code: coupon.code,
-                discountType: coupon.discountType,
-                discount: coupon.discount,
-                minPurchase: coupon.minPurchase,
-                expiryDate: coupon.expiryDate
-            });
+          
         });
 
         // Check for duplicate codes (case-insensitive)
@@ -37,10 +29,8 @@ async function checkCoupons() {
         });
 
         if (duplicates.length > 0) {
-            console.log('\nFound duplicate codes:');
-            console.log(duplicates);
+           
         } else {
-            console.log('\nNo duplicate codes found');
         }
 
         // Check for malformed codes
@@ -50,24 +40,19 @@ async function checkCoupons() {
         });
 
         if (malformed.length > 0) {
-            console.log('\nFound malformed codes:');
-            console.log(malformed);
+         
         } else {
-            console.log('\nNo malformed codes found');
         }
 
     } catch (error) {
-        console.error('Error checking coupons:', error);
     } finally {
         await mongoose.disconnect();
-        console.log('Disconnected from MongoDB');
     }
 }
 
 // Connect to MongoDB and run the check
 mongoose.connect(MONGODB_URL)
     .then(() => {
-        console.log('Connected to MongoDB');
         return checkCoupons();
     })
     .catch(error => {

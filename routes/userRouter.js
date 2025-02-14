@@ -16,7 +16,6 @@ const { cartCount, wishlistCount } = require('../middlewares/count.js');
 const getActiveCoupon = require('../middlewares/activeCoupon.js');
 const invoiceController = require('../controllers/user/invoiceController.js');
 
-console.log(cartCount)
 
 router.use(cartCount);
 router.use(wishlistCount);
@@ -38,7 +37,6 @@ router.post("/verify-otp",userController.verifyOtp)
 router.post("/resend-otp",userController.resendOtp)
 
 router.get("/auth/google", (req, res, next) => {
-    console.log("Initiating Google OAuth login...");
     next();
   }, passport.authenticate("google", { scope: ["profile", "email"] }));
   
@@ -50,7 +48,6 @@ router.get("/auth/google", (req, res, next) => {
         if (req.user) {
           req.session.user = req.user._id;
           await req.session.save(); 
-          console.log("Authentication successful. Redirecting to home page...");
           res.redirect("/");
         } else {
           res.redirect("/login");

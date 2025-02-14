@@ -11,7 +11,49 @@
         box-sizing: border-box;
         font-family: "Arial", sans-serif;
       }
+      .form-group {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
 
+    .error-message {
+        color: #dc3545;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+
+    input.error {
+        border-color: #dc3545;
+        background-color: #fff;
+    }
+
+    input.error:focus {
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        font-size: 1.2rem;
+    }
+
+    .password-toggle:focus {
+        outline: none;
+    }
+
+    input:not(:placeholder-shown) + label,
+    input:focus + label {
+        transform: translateY(-1.5rem) scale(0.85);
+        background-color: white;
+        padding: 0 0.2rem;
+    }
       body {
         background-color: #ffffff;
         display: flex;
@@ -89,10 +131,7 @@
         font-size: 14px;
       }
 
-      .form-group {
-        position: relative;
-        margin-bottom: 16px;
-      }
+      
 
       .form-group input {
         width: 100%;
@@ -309,48 +348,300 @@
     </div>
 
     <script>
-     function validateForm() {
+  // Wait for DOM to load
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    initializeValidation();
+});
+
+function initializeValidation() {
+    // Add real-time validation for all inputs
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            validateField(this);
+        });
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+    });
+
+    // Add password visibility toggle
+    addPasswordToggle('password');
+    addPasswordToggle('confirmPassword');
+}
+
+function addPasswordToggle(fieldId) {
+    const passwordField = document.getElementById(fieldId);
+    const toggleButton = document.createElement('button');
+    toggleButton.type = 'button';
+    toggleButton.className = 'password-toggle';
+    // toggleButton.innerHTML = '👁️';
+    // toggleButton.onclick = function() {
+    //     const type = passwordField.type === 'password' ? 'text' : 'password';
+    //     passwordField.type = type;
+    //     toggleButton.innerHTML = type === 'password' ? '👁️' : '👁️‍🗨️';
+    // };
+    passwordField.parentElement.style.position = 'relative';
+    passwordField.parentElement.appendChild(toggleButton);
+}
+
+function validateForm(event) {
+    const username = document.querySelector('input[name="name"]').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
     clearErrorMessages();
-
-    const username = document.getElementById("username").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const confirmPassword = document.getElementById("confirmPassword").value.trim();
-
     let isValid = true;
 
     // Username validation
-    if (username.length < 3) {
-        displayErrorMessage("username-error", "Username must be at least 3 characters long.");
-        isValid = false;
-    }
+    if (!validateUsername(username)) isValid = false;
 
     // Email validation
-    if (!validateEmail(email)) {
-        displayErrorMessage("email-error", "Please enter a valid email address.");
-        isValid = false;
-    }
+    if (!validateEmail(email)) isValid = false;
 
     // Phone validation
-    if (!validatePhone(phone)) {
-        displayErrorMessage("phone-error", "Please enter a valid 10-digit phone number.");
-        isValid = false;
-    }
+    if (!validatePhone(phone)) isValid = false;
 
     // Password validation
-    if (password.length < 8) {
-        displayErrorMessage("password-error", "Password must be at least 8 characters long.");
-        isValid = false;
+    if (!validatePassword(password)) isValid = false;
+
+    // Confirm password validation
+    if (!validateConfirmPassword(password, confirmPassword)) isValid = false;
+
+    if (!isValid && event) {
+        event.preventDefault();
+    }
+    return isValid;
+}
+
+function validateField(input) {
+    clearErrorMessage(input.id + '-error');
+    const value = input.value.trim();
+
+    switch(input.name) {
+        case 'name':
+            return validateUsername(value);
+        case 'email':
+            return validateEmail(value);
+        case 'phone':
+            return validatePhone(value);
+        case 'password':
+            return validatePassword(value);
+        case 'confirmPassword':
+            return validateConfirmPassword(
+                document.getElementById('password').value,
+                value
+            );
+    }
+}
+
+function validateUsername(username) {
+    if (!username) {
+        displayErrorMessage('username-error', 'Username is required');
+        return false;
+    }
+    if (username.length < 3 || username.length > 20) {
+        displayErrorMessage('username-error', 'Username must be between 3 and 20 characters');
+        return false;
+    }
+    if (!/^[A-Za-z]/.test(username)) {
+        displayErrorMessage('username-error', 'Username must start with a letter');
+        return false;
+    }
+    if (!/^[A-Za-z0-9_]*$/.test(username)) {
+        displayErrorMessage('username-error', 'Username can only contain letters, numbers, and underscores');
+        return false;
+    }
+    return true;
+}
+
+function validateEmail(email) {
+    if (!email) {
+        displayErrorMessage('email-error', 'Email is required');
+        return false;
+    }
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    if (!emailRegex.test(email)) {
+        displayErrorMessage('email-error', 'Please enter a valid email address');
+        return false;
+    }
+    return true;
+}
+
+function validatePhone(phone) {
+    if (!phone) {
+        displayErrorMessage('phone-error', 'Phone number is required');
+        return false;
+    }
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+        displayErrorMessage('phone-error', 'Please enter a valid 10-digit phone number');
+        return false;
+    }
+    return true;
+}
+
+function validatePassword(password) {
+    if (!password) {
+        displayErrorMessage('password-error', 'Password is required');
+        return false;
     }
 
-    // Confirm Password validation
+    const minLength = password.length >= 8;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const hasInvalidChar = /[^A-Za-z0-9!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (hasInvalidChar) {
+        displayErrorMessage('password-error', 'Password contains invalid characters');
+        return false;
+    }
+
+    let errors = [];
+    if (!minLength) errors.push('At least 8 characters');
+    if (!hasUpper) errors.push('One uppercase letter');
+    if (!hasLower) errors.push('One lowercase letter');
+    if (!hasNumber) errors.push('One number');
+    if (!hasSpecial) errors.push('One special character');
+
+    if (errors.length > 0) {
+        displayErrorMessage('password-error', 'Password must contain: ' + errors.join(', '));
+        return false;
+    }
+    return true;
+}
+
+function validateConfirmPassword(password, confirmPassword) {
+    if (!confirmPassword) {
+        displayErrorMessage('confirmPassword-error', 'Please confirm your password');
+        return false;
+    }
     if (password !== confirmPassword) {
-        displayErrorMessage("confirmPassword-error", "Passwords do not match.");
-        isValid = false;
+        displayErrorMessage('confirmPassword-error', 'Passwords do not match');
+        return false;
+    }
+    return true;
+}
+
+function displayErrorMessage(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+        const inputField = document.querySelector(`[id="${elementId.replace('-error', '')}"]`);
+        if (inputField) {
+            inputField.classList.add('error');
+        }
+    }
+}
+
+function clearErrorMessage(elementId) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+        const inputField = document.querySelector(`[id="${elementId.replace('-error', '')}"]`);
+        if (inputField) {
+            inputField.classList.remove('error');
+        }
+    }
+}
+
+function clearErrorMessages() {
+    document.querySelectorAll('.error-message').forEach(element => {
+        element.textContent = '';
+        element.style.display = 'none';
+    });
+    document.querySelectorAll('input').forEach(input => {
+        input.classList.remove('error');
+    });
+}
+
+// Enhanced error message display
+function displayErrorMessage(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.innerText = message;
+        errorElement.style.display = "block";
+        // Add visual feedback to the input field
+        const inputField = document.querySelector(`[id="${elementId.replace('-error', '')}"]`);
+        if (inputField) {
+            inputField.classList.add('error');
+        }
+    }
+}
+
+// Enhanced error message clearing
+function clearErrorMessages() {
+    const errorElements = document.querySelectorAll(".error-message");
+    errorElements.forEach((element) => {
+        element.innerText = "";
+        element.style.display = "none";
+    });
+    // Remove error class from all inputs
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach((input) => {
+        input.classList.remove('error');
+    });
+}
+
+// Add real-time validation
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+    });
+});
+
+// Individual field validation
+function validateField(input) {
+    clearErrorMessages();
+    let isValid = true;
+
+    switch(input.id) {
+        case 'username':
+            if (input.value.trim().length < 3) {
+                displayErrorMessage("username-error", "Username must be at least 3 characters long.");
+                isValid = false;
+            }
+            break;
+        case 'email':
+            if (!validateEmail(input.value.trim())) {
+                displayErrorMessage("email-error", "Please enter a valid email address.");
+                isValid = false;
+            }
+            break;
+        case 'phone':
+            if (!validatePhone(input.value.trim())) {
+                displayErrorMessage("phone-error", "Please enter a valid 10-digit phone number.");
+                isValid = false;
+            }
+            break;
+        case 'password':
+            if (!validatePassword(input.value.trim())) {
+                displayErrorMessage("password-error", 
+                    "Password must be at least 8 characters long and contain at least one uppercase letter, " +
+                    "one lowercase letter, one number, and one special character.");
+                isValid = false;
+            }
+            break;
+        case 'confirmPassword':
+            const password = document.getElementById('password').value.trim();
+            if (input.value.trim() !== password) {
+                displayErrorMessage("confirmPassword-error", "Passwords do not match.");
+                isValid = false;
+            }
+            break;
     }
 
-    return isValid; // Only submit if all fields are valid
+    return isValid;
 }
 
 // Helper function to validate email format

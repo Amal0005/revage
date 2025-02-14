@@ -448,9 +448,13 @@
             <div class="status-label">Order Status:</div>
             <div class="status-value <%= order.status.toLowerCase() %>">
                 <%= order.status %>
-                <% if (order.status === 'Pending' && order.paymentStatus === 'Pending') { %>
+                <% if (order.status === 'Pending' && order.paymentStatus === 'Pending'&&order.paymentMethod !== 'cod') { %>
                     <button class="retry-payment" onclick="retryPayment('<%= order._id %>')">
                         <i class="fas fa-sync-alt"></i> Retry Payment
+                    </button>
+                <% }if(order.paymentMethod === 'cod'&&order.status === 'Pending' && order.paymentStatus === 'Pending' ) {%>
+                    <button class="retry-payment" onclick="retryPayment('<%= order._id %>')">
+                        <i class="fas fa-sync-alt"></i> Pay Now
                     </button>
                 <% } %>
             </div>
@@ -544,10 +548,10 @@
             <span class="label">Shipping:</span>
             <span class="value">Free Delivery</span>
         </div>
-
+        
         <div class="summary-item total">
-            <span class="label">Total:</span>
-            <span class="value">₹<%= order.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+            <span class="label"><strong>Total Amount:</strong></span>
+            <span class="value"><strong>₹<%= order.totalAmount ? order.totalAmount.toFixed(2) : '0.00' %></strong></span>
         </div>
 
         <% if (order.paymentMethod === 'wallet') { %>
@@ -721,7 +725,6 @@ function submitReturn() {
 }
 
 function retryPayment(orderId) {
-    console.log('Initiating payment retry for order:', orderId);
     fetch(`/retry-payment/${orderId}`, {
         method: 'POST',
         headers: {
@@ -730,8 +733,7 @@ function retryPayment(orderId) {
     })
     .then(async response => {
         const data = await response.json();
-        console.log('Response status:', response.status);
-        console.log('Response data:', data);
+        
         
         if (!response.ok) {
             throw new Error(data.message || 'Server responded with an error');
@@ -739,14 +741,8 @@ function retryPayment(orderId) {
         return data;
     })
     .then(data => {
-        console.log('Retry payment response:', data);
         if (data.success && data.razorpayOrder) {
-            console.log('Creating Razorpay instance with options:', {
-                key: data.key,
-                amount: data.razorpayOrder.amount,
-                currency: data.razorpayOrder.currency,
-                orderId: data.razorpayOrder.id
-            });
+            
             
             const options = {
                 key: data.key,
@@ -756,7 +752,6 @@ function retryPayment(orderId) {
                 description: 'Order Payment',
                 order_id: data.razorpayOrder.id,
                 handler: function (response) {
-                    console.log('Payment success response:', response);
                     // Handle successful payment
                     fetch('/verify-payment', {
                         method: 'POST',
@@ -807,7 +802,6 @@ function retryPayment(orderId) {
             };
 
             try {
-                console.log('Opening Razorpay payment modal');
                 const razorpay = new Razorpay(options);
                 razorpay.open();
             } catch (error) {
@@ -848,7 +842,6 @@ async function downloadInvoice(orderId) {
         const response = await fetch(`/order/${orderId}/invoice`);
         
         // Log the response status and details for debugging
-        console.log('Response status:', response.status);
         
         if (!response.ok) {
             const errorText = await response.text();

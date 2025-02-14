@@ -23,14 +23,7 @@ const contactController = {
                 });
             }
 
-            // Log the contact form submission (you can replace this with email sending or database storage)
-            console.log('Contact Form Submission:', {
-                name,
-                email,
-                subject,
-                message,
-                timestamp: new Date()
-            });
+      
 
             // Send success response
             res.status(200).json({

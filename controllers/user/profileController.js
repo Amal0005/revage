@@ -40,7 +40,6 @@ const sendVerificationEmail= async(email,otp)=>{
         }
 
         const info=await transporter.sendMail(mailOptions)
-        console.log("Email sent :",info.messageId);
         return true;
         
 
@@ -157,10 +156,7 @@ const verifyChangePasswordOtp=async(req,res)=>{
         }
 
         if(enteredOtp===req.session.userOtp){
-            // res.json({
-            //     success:true,
-            //     redirectUrl:"user/reset-password"
-            // })
+          
             res.redirect('/reset-password')
         }else{
             res.json({
@@ -211,7 +207,6 @@ const resendOtp = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        console.log("Request body:", req.body);
         const { name, phone } = req.body;
         const userId = req.session.user; 
 
@@ -232,7 +227,6 @@ const updateProfile = async (req, res) => {
 
         await user.save();
 
-        console.log("Profile updated successfully:", user);
         res.json({ success: true, message: "Profile updated successfully!" });
     } catch (error) {
         console.error("Error updating profile:", error);
@@ -409,12 +403,10 @@ const getResetPasswordPage = async (req, res) => {
 
 const addAddress = async (req, res) => {
     try {
-        console.log('Session:', req.session);
         const userId = req.session.user;
         const addressData = req.body;
 
-        console.log('Received address data:', addressData);
-        console.log('User ID:', userId);
+  
 
         if (!userId) {
             return res.status(401).json({ success: false, message: "Please login to add address" });
@@ -449,11 +441,9 @@ const addAddress = async (req, res) => {
 
         const user = await User.findById(userId);
         if (!user) {
-            console.log('User not found for ID:', userId);
             return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        console.log('Found user:', user.email);
 
         // Initialize addresses array if it doesn't exist
         if (!Array.isArray(user.addresses)) {
@@ -464,7 +454,6 @@ const addAddress = async (req, res) => {
         user.addresses.push(addressData);
         await user.save();
 
-        console.log('Address added successfully');
         res.status(200).json({ success: true, message: "Address added successfully" });
     } catch (error) {
         console.error("Error adding address:", error);

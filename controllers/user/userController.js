@@ -74,7 +74,6 @@ const loadLogin = async (req, res) => {
   try {
     res.render("user/login");
   } catch (error) {
-    console.log("login not found");
     res.status(500).send("userlogin error");
   }
 };
@@ -83,7 +82,6 @@ const loadSignup = async (req, res) => {
   try {
     return res.render("user/signup");
   } catch (error) {
-    console.log("homepage not loading");
     res.status(500).send("user/login error");
   }
 };
@@ -115,7 +113,6 @@ async function sendVerificationEmail(email, otp) {
       html: `<b>Your OTP: ${otp}</b>`, // HTML body
     });
 
-    console.log("Email sent successfully:", info.response);
     return info.accepted.length > 0; // Return true if the email was accepted
   } catch (error) {
     console.error("Error sending email:", error);
@@ -126,7 +123,6 @@ async function sendVerificationEmail(email, otp) {
 const signup = async (req, res) => {
   try {
     const { name, phone, email, password, cPassword } = req.body;
-    console.log("name",req.body);
 
     const otp = generateOtp();
     const emailSent = await sendVerificationEmail(email, otp);
@@ -164,13 +160,11 @@ const verifyOtp = async (req, res) => {
     console.log("Session OTP:", req.session.userOtp);
 
     if (!req.session.userOtp || !req.session.userData) {
-      console.log("Session data missing");
       return res.status(400).json({ success: false, message: "Session data missing. Please try again." });
     }
 
     if (otp === String(req.session.userOtp)) {
       const user = req.session.userData;
-      console.log("User data from session:", user);
 
       const passwordHash = await securePassword(user.password);
       const saveUserData = new User({
@@ -188,7 +182,6 @@ const verifyOtp = async (req, res) => {
 
       res.json({ success: true, redirectUrl: "/" });
     } else {
-      console.log("Invalid OTP");
       res.status(400).json({ success: false, message: "Invalid OTP, Please try again" });
     }
   } catch (error) {
@@ -202,11 +195,9 @@ const resendOtp = async (req, res) => {
     // Retrieve email from session
     const { email } = req.session.userData || {};
     if (!email) {
-      console.log("Email not found in session");
       return res.status(400).json({ success: false, message: "Email not found in session" });
     }
 
-    console.log("Attempting to generate OTP for email:", email);
 
     // Generate a new OTP and store it in the session
     const otp = generateOtp();
@@ -222,11 +213,9 @@ const resendOtp = async (req, res) => {
     });
 
     if (!emailSent) {
-      console.log("Failed to send OTP email to:", email);
       return res.status(500).json({ success: false, message: "Failed to send OTP. Try again" });
     }
 
-    console.log("Resend OTP successful for email:", email,"otp:",otp);
     req.session.save((err) => {
       if (err) {
         console.error("Error saving session:", err);
@@ -273,13 +262,11 @@ const logout =async(req,res)=>{
   try {
     req.session.destroy((err)=>{
       if(err){
-      console.log("Session destruction error",err.message);
       return res.redirect("/pageNotFound")
       }
       return res.redirect("login")
     })
   } catch (error) {
-    console.log("logout error",error);
     res.redirect("/pageNotFound")
     
   }
