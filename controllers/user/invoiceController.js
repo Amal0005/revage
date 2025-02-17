@@ -103,8 +103,7 @@ const addOrderDetails = async (doc, order) => {
     
     // Build address lines with proper checks
     const addressLines = [
-        address.name || 'N/A',
-        address.address || 'N/A',
+        address.fullName || 'N/A',
         `${[
             address.city || '',
             address.state || '',

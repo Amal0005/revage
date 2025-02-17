@@ -540,7 +540,7 @@
         <% if (discountAmount > 0) { %>
         <div class="summary-item discount">
             <span class="label"><%= discountLabel %>:</span>
-            <span class="value text-success">-₹<%= discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+            <span class="value text-success">-₹<%= order.discount.toLocaleString('en-IN') %></span>
         </div>
         <% } %>
 

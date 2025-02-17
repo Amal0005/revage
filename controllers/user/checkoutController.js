@@ -176,10 +176,16 @@ const checkoutController = {
     },
 
     processCheckout: async (req, res) => {
+        console.log('CAME TO CHECKOUT');
         try {
             const userId = req.session.user;
-            const { addressIndex, paymentMethod } = req.body;
+            // const { addressIndex, paymentMethod,total,subtotal } = req.body;
+            const { addressIndex, paymentMethod} = req.body;
+            const totall = parseFloat(req.body.total) || 0;
+            const subtotall = parseFloat(req.body.subtotal) || 0;
 
+            console.log(req.body);
+            console.log('paymentMethod',paymentMethod)
             const user = await User.findById(userId).populate('wallet');
             if (!user) {
                 console.error('User not found:', userId);
@@ -295,6 +301,7 @@ const checkoutController = {
 
                 // Calculate final price with offer
                 let finalPrice = basePrice;
+                console.log("basePrice",basePrice)
                 if (bestOffer > 0) {
                     const discountAmount = (basePrice * bestOffer) / 100;
                     finalPrice = basePrice - discountAmount;
@@ -302,11 +309,11 @@ const checkoutController = {
                 finalPrice = Math.round(finalPrice); // Round to nearest rupee
 
                 const itemTotal = finalPrice * quantity;
-             
+             console.log('itemTotal',itemTotal)
 
                 subtotal += itemTotal;
             }
-
+  
             if (typeof subtotal !== 'number' || isNaN(subtotal) || subtotal < 0) {
                 console.error('Invalid subtotal:', subtotal);
                 return res.status(400).json({
@@ -318,7 +325,7 @@ const checkoutController = {
 
             const shipping = 0; // Free delivery
             let total = subtotal;
-
+            console.log('total',total)
             // Apply coupon discount if present
             let couponDiscount = 0;
             if (req.body.couponCode && req.body.discountValue) {
@@ -386,31 +393,19 @@ const checkoutController = {
             const orderData = {
                 user: userId,
                 items: cart.items.map(item => {
-                    const product = item.product;
-                    const productOffer = product.offer && product.offer.percentage ? product.offer.percentage : 0;
-                    const categoryOffer = product.category && product.category.categoryOffer ? product.category.categoryOffer : 0;
-                    const bestOffer = Math.max(productOffer, categoryOffer);
-                    
-                    let price = product.salePrice > 0 ? product.salePrice : product.regularPrice;
-                    if (bestOffer > 0) {
-                        const discountAmount = (price * bestOffer) / 100;
-                        price = price - discountAmount;
-                        console.log(price);
-                        
-                    }
-
+                    const product = item.product; 
+            
                     return {
                         product: item.product._id,
                         quantity: item.quantity,
-                        price: Math.round(price),
-                        appliedOffer: bestOffer > 0 ? {
-                            percentage: bestOffer,
-                            validUntil: product.offer ? product.offer.validUntil : null
-                        } : undefined
+                        price:subtotall,
+                        appliedOffer:undefined,
                     };
                 }),
-                totalAmount: total,
-                subtotal: subtotal,
+                totalAmount: totall,
+                subtotal: subtotall,
+                discount:subtotall-totall,
+            
                 shipping: shipping,
                 shippingAddress: {
                     fullName: user.addresses[addressIndex].name,
@@ -420,12 +415,12 @@ const checkoutController = {
                     pincode: user.addresses[addressIndex].pincode,
                     state: user.addresses[addressIndex].state
                 },
+            
                 paymentMethod: paymentMethod,
                 status: paymentMethod === 'wallet' ? 'Processing' : 'Pending',
                 paymentStatus: paymentMethod === 'wallet' ? 'Completed' : 'Pending',
                 orderDate: new Date()
             };
-            
               
             // If coupon was applied, add it to the order
             if (req.body.couponCode) {
@@ -435,7 +430,9 @@ const checkoutController = {
                     discountValue: req.body.discountValue,
                     discountAmount: couponDiscount
                 };
-            }
+            };
+
+            console.log("this IS A ORE=DER DATA ",orderData)
 
             const order = new Order(orderData);
             await order.save();

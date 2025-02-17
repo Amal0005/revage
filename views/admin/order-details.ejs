@@ -263,11 +263,19 @@
                                         <span class="info-label">Shipping:</span>
                                         <span class="info-value">Free Delivery</span>
                                     </div>
+                                    <%if(paymentMethod === 'cod'){%>
+                                        <div class="d-flex justify-content-between order-total">
+                                            <span class="info-label">Total:</span>
+                                            <span class="info-value price-tag">₹<%= (subtotalAmount - couponDiscount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                                        </div>
+                                    <%}else{>
+
 
                                     <div class="d-flex justify-content-between order-total">
                                         <span class="info-label">Total:</span>
                                         <span class="info-value price-tag">₹<%= order.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
                                     </div>
+                                    <%} %>
                                 </div>
                             </div>
                         </div>

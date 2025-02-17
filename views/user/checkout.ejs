@@ -764,7 +764,7 @@
 <script>
 let selectedAddressIndex = null;
 let selectedPaymentMethod = 'cod';
-let appliedCouponCode = null;
+let appliedCoupon = null;
 
 function parseCurrency(value) {
     return parseFloat(value.replace(/[₹,]/g, ''));
@@ -809,7 +809,7 @@ async function applyCoupon() {
         const data = await response.json();
 
         if (response.ok) {
-            appliedCouponCode = couponCode;
+            appliedCoupon = data;
             document.getElementById('applied-coupon').style.display = 'flex';
             document.getElementById('applied-coupon-code').textContent = couponCode;
             document.getElementById('coupon-code').value = '';
@@ -827,9 +827,9 @@ async function applyCoupon() {
 }
 
 function removeCoupon() {
-    if (!appliedCouponCode) return;
+    if (!appliedCoupon) return;
 
-    appliedCouponCode = null;
+    appliedCoupon = null;
     document.getElementById('applied-coupon').style.display = 'none';
     document.getElementById('coupon-message').style.display = 'none';
     document.getElementById('discount-row').style.display = 'none';
@@ -854,34 +854,36 @@ async function processCheckout() {
         return;
     }
 
+    const finalTotalStr = document.getElementById('final-total').textContent;
+    const subtotalStr = document.querySelector('.total-row:first-child span:last-child').textContent;
+    const shippingStr = document.querySelector('.total-row:nth-child(2) span:last-child').textContent;
+    
+    const total = parseCurrency(finalTotalStr);
+    const subtotal = parseCurrency(subtotalStr);
+    const shipping = parseCurrency(shippingStr);
+
     const checkoutData = {
         addressIndex: selectedAddressIndex,
         paymentMethod: selectedPaymentMethod,
-        couponCode: appliedCouponCode
+        total,
+        subtotal,
+        shipping
     };
+
+    if (appliedCoupon) {
+        checkoutData.couponCode = appliedCoupon.code;
+        checkoutData.discountType = appliedCoupon.discountType;
+        checkoutData.discountValue = appliedCoupon.discountValue;
+    }
 
     if (selectedPaymentMethod === 'razorpay') {
         try {
-            const finalTotalStr = document.getElementById('final-total').textContent;
-            const total = parseCurrency(finalTotalStr);
-
-            const subtotalStr = document.querySelector('.total-row:first-child span:last-child').textContent;
-            const shippingStr = document.querySelector('.total-row:nth-child(2) span:last-child').textContent;
-            const subtotal = parseCurrency(subtotalStr);
-            const shipping = parseCurrency(shippingStr);
-
             const orderResponse = await fetch('/create-razorpay-order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    ...checkoutData,
-                    total,
-                    subtotal,
-                    shipping,
-                    currency: 'INR'
-                })
+                body: JSON.stringify(checkoutData)
             });
 
             const orderData = await orderResponse.json();
@@ -955,7 +957,8 @@ async function processCheckout() {
                 text: error.message || 'Unable to process payment'
             });
         }
-    } else {
+    } else if (selectedPaymentMethod === 'wallet' || selectedPaymentMethod === 'cod') {
+        console.log('this is a order data',checkoutData)
         try {
             const response = await fetch('/checkout/process', {
                 method: 'POST',
@@ -970,7 +973,7 @@ async function processCheckout() {
             if (result.success) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Order Placed Successfully!',
+                    title: selectedPaymentMethod === 'wallet' ? 'Payment Successful!' : 'Order Placed Successfully!',
                     text: result.message,
                     showConfirmButton: false,
                     timer: 2000

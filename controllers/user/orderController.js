@@ -34,10 +34,12 @@ const getOrderDetails = async (req, res) => {
 
     console.log('Order before rendering:', {
       totalAmount: orderId.totalAmount,
+
       subtotal: orderId.subtotal,
       shipping: orderId.shipping
     });
    
+
 
     res.render("user/order-details", {
       order: order.toObject(),
