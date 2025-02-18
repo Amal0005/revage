@@ -163,6 +163,7 @@ const orderController = {
                     email: 'Email not available'
                 };
             }
+            console.log("odd",order)
             
             res.render('admin/order-details', { order });
         } catch (error) {

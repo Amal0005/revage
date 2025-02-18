@@ -12,6 +12,12 @@ const orderSchema = new mongoose.Schema({
             ref: 'Product',
             required: true
         },
+        productName: {
+            type: String
+        },
+        productImage: {
+            type : String
+        },
         quantity: {
             type: Number,
             required: true,

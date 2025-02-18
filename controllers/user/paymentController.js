@@ -85,6 +85,8 @@ const createRazorpayOrder = async (req, res) => {
             user: userId,
             items: cart.items.map(item => ({
                 product: item.product._id,
+                productName: item.product.productName,
+                productImage: item.product.productImage[0],
                 quantity: item.quantity,
                 price: item.product.salePrice
             })),

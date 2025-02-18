@@ -394,9 +394,12 @@ const checkoutController = {
                 user: userId,
                 items: cart.items.map(item => {
                     const product = item.product; 
+                    console.log("hhhi",product)
             
                     return {
                         product: item.product._id,
+                        productName: item.product.productName,
+                        productImage: item.product.productImage[0],
                         quantity: item.quantity,
                         price:subtotall,
                         appliedOffer:undefined,
